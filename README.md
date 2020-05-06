@@ -131,7 +131,7 @@ module "mssql-server" {
 }
 ```
 
-## Prerequisites
+## Dependencies
 
 ### Resource Group
 
