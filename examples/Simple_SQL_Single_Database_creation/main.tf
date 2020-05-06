@@ -23,7 +23,7 @@ module "mssql-server" {
 
 # AD administrator for an Azure SQL server
   enable_sql_ad_admin             = true
-  ad_admin_login_name             = "firstname.lastname@tieto.com"
+  ad_admin_login_name             = "firstname.lastname@example.com"
 
 # Firewall Rules to allow azure and external clients
   enable_firewall_rules           = true
