@@ -20,7 +20,7 @@ All Azure resources which support tagging can be tagged by specifying key-values
 
 ```
 module "mssql-server" {
-  source = "github.com/kumarvit/terraform-azurerm-mssql-db"
+  source = "github.com/kumarvna/terraform-azurerm-mssql-db?ref=v1.0.0"
   create_resource_group = false
 
   # ... omitted
@@ -51,7 +51,7 @@ Following example is to create a simple database with basic firewall rules to ma
 
 ```
 module "mssql-server" {
-  source = "github.com/kumarvit/terraform-azurerm-mssql-db"
+  source = "github.com/kumarvna/terraform-azurerm-mssql-db?ref=v1.0.0"
 
 # Resource Group, VNet and Subnet declarations
   create_resource_group           = false
@@ -105,7 +105,7 @@ Following example to create a SQL single database using private endpoints. This 
 
 ```
 module "mssql-server" {
-  source = "github.com/kumarvit/terraform-azurerm-mssql-db"
+  source = "github.com/kumarvna/terraform-azurerm-mssql-db?ref=v1.0.0"
 
 # Resource Group, VNet and Subnet declarations
   create_resource_group           = false
@@ -152,7 +152,7 @@ Following example to create a SQL database using geo-replication with auto-failo
 
 ```
 module "mssql-server" {
-  source = "github.com/kumarvit/terraform-azurerm-mssql-db"
+  source = "github.com/kumarvna/terraform-azurerm-mssql-db?ref=v1.0.0"
 
 # Resource Group, VNet and Subnet declarations
   create_resource_group           = false
@@ -210,7 +210,7 @@ Following example to create a SQL database using geo-replication with auto-failo
 
 ```
 module "mssql-server" {
-  source = "github.com/kumarvit/terraform-azurerm-mssql-db"
+  source = "github.com/kumarvna/terraform-azurerm-mssql-db?ref=v1.0.0"
 
 # Resource Group, VNet and Subnet declarations
   create_resource_group           = false
