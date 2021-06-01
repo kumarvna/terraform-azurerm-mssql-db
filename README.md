@@ -12,7 +12,7 @@ You can create a single database in the provisioned or serverless compute tier. 
 
 * [SQL Servers](https://www.terraform.io/docs/providers/azurerm/r/sql_server.html)
 * [SQL Database](https://www.terraform.io/docs/providers/azurerm/r/mysql_database.html)
-* [Storage account for diagnostics](https://www.terraform.io/docs/providers/azurerm/r/storage_account.html) 
+* [Storage account for diagnostics](https://www.terraform.io/docs/providers/azurerm/r/storage_account.html)
 * [Active Directory Administrator](https://www.terraform.io/docs/providers/azurerm/r/sql_active_directory_administrator.html)
 * [Firewall rule for azure services, resources, and client IP](https://www.terraform.io/docs/providers/azurerm/r/sql_firewall_rule.html)
 * [SQL Failover Group](https://www.terraform.io/docs/providers/azurerm/r/sql_failover_group.html)
@@ -20,13 +20,13 @@ You can create a single database in the provisioned or serverless compute tier. 
 * [Private DNS zone for privatelink A records](https://www.terraform.io/docs/providers/azurerm/r/private_dns_zone.html)
 * [SQL Script execution to create Database](https://docs.microsoft.com/en-us/sql/ssms/scripting/sqlcmd-run-transact-sql-script-files?view=sql-server-ver15)
 
-> #### *Note: If you prefer private endpoints feature, firewall rules are not relevant. However, this module can support both the Public and Private availability of the Database. Disable the firewall rules, in case you want to create the database using private endpoints only.*
+>*Note: If you prefer private endpoints feature, firewall rules are not relevant. However, this module can support both the Public and Private availability of the Database. Disable the firewall rules, in case you want to create the database using private endpoints only.*
 
 ## Module Usage
 
-### Simple Azure SQL single database using private Endpoint 
+### Simple Azure SQL single database using private Endpoint
 
-Following example to create a SQL single database using private endpoints. This module also supports optional AD admin user for DB, Audit Policies, and creation of database schema using SQL script. 
+Following example to create a SQL single database using private endpoints. This module also supports optional AD admin user for DB, Audit Policies, and creation of database schema using SQL script.
 
 ```
 module "mssql-server" {
@@ -72,9 +72,9 @@ module "mssql-server" {
 }
 ```
 
-### Azure SQL database creation using geo-replication with auto-failover groups 
+### Azure SQL database creation using geo-replication with auto-failover groups
 
-Following example to create a SQL database using geo-replication with auto-failover groups. This module also supports optional AD admin user for DB, Audit Policies, Firewall Rules, and creation of database schema using SQL script. 
+Following example to create a SQL database using geo-replication with auto-failover groups. This module also supports optional AD admin user for DB, Audit Policies, Firewall Rules, and creation of database schema using SQL script.
 
 ```
 module "mssql-server" {
@@ -135,13 +135,13 @@ module "mssql-server" {
 
 ### Resource Group
 
-By default, this module will not create a resource group and the name of an existing resource group to be given in an argument `create_resource_group`. If you want to create a new resource group, set the argument `create_resource_group = true`.
+By default, this module will not create a resource group and the name of an existing resource group to be given in an argument `resource_group_name`. If you want to create a new resource group, set the argument `create_resource_group = true`.
 
 *If you are using an existing resource group, then this module uses the same resource group location to create all resources in this module.*
 
 ### VNet and Subnets
 
-This module is not going to create a Vnet and corresponding services. However, this module expect you to provide VPC and Subnet address space for private end points. 
+This module is not going to create a Vnet and corresponding services. However, this module expect you to provide VPC and Subnet address space for private end points.
 
 Deploy Azure Vnet terraform module to overcome with this dependency. The [`terraform-azurerm-vnet`](https://github.com/tietoevry-cloud-infra/terraform-azurerm-vnet) module currently available from [GitHub](https://github.com/tietoevry-cloud-infra/terraform-azurerm-vnet), also aligned with this module.
 
@@ -164,29 +164,29 @@ Advanced Threat Protection for single and pooled databases detects anomalous act
 
 By default, this feature not enabled on this module. To enable the threat detection policy for the database, set the argument `enable_threat_detection_policy = true`.
 
-> #### Note: Enabling `extended_auditing_policy` and `threat_detection_policy` features on SQL servers and database going to create a storage account to keep all audit logs. Log retention policy to be configured to keep the size within limits for this storage account. Note that this module creates resources that can cost money.
+> #### Note: Enabling `extended_auditing_policy` and `threat_detection_policy` features on SQL servers and database going to create a storage account to keep all audit logs. Log retention policy to be configured to keep the size within limits for this storage account. Note that this module creates resources that can cost money
 
 ## Adding Active Directory Administrator to SQL Database
 
-Azure Active Directory authentication is a mechanism of connecting to Microsoft Azure SQL Database by using identities in Azure Active Directory (Azure AD). This module adds the provided Azure Active Directory user/group to SQL Database as an administrator so that the user can login to this database with Azure AD authentication.   
+Azure Active Directory authentication is a mechanism of connecting to Microsoft Azure SQL Database by using identities in Azure Active Directory (Azure AD). This module adds the provided Azure Active Directory user/group to SQL Database as an administrator so that the user can login to this database with Azure AD authentication.
 
-By default, this feature not enabled on this module. To add the Active Directory Administrator to SQL database, set the argument `enable_sql_ad_admin = true` and provide valid Azure AD user login name (`ad_admin_login_name`). 
+By default, this feature not enabled on this module. To add the Active Directory Administrator to SQL database, set the argument `enable_sql_ad_admin = true` and provide valid Azure AD user login name (`ad_admin_login_name`).
 
 ## Configuring the Azure SQL Database Firewall
 
-The Azure SQL Database firewall lets you decide which IP addresses may or may not have access to either your Azure SQL Server or your Azure SQL database.  When creating an Azure SQL Database, the firewall needs to be configured before anyone will be able to access the database. 
+The Azure SQL Database firewall lets you decide which IP addresses may or may not have access to either your Azure SQL Server or your Azure SQL database.  When creating an Azure SQL Database, the firewall needs to be configured before anyone will be able to access the database.
 
-**Server level rules:** 
+**Server level rules:**
 
 Server level rules allow access to the Azure SQL Server. Which means that the client will have access to all the databases stored on that SQL Server. As a best practice, server level access should only be given when absolutely necessary and database level rules must be used wherever possible.
 
-**Database level rules:** 
+**Database level rules:**
 
 Using database level rules adds security by ensuring that clients do not have access to database that they don’t need and it also makes it easier to move databases, since the rules are contained within the database itself.
 
-By default, no external access to your SQL Database will be allowed until you explicitly assign permission by creating a firewall rule.  To add the firewall rules to the SQL database, set the argument `enable_firewall_rules = true` and provide the required IP ranges. 
+By default, no external access to your SQL Database will be allowed until you explicitly assign permission by creating a firewall rule.  To add the firewall rules to the SQL database, set the argument `enable_firewall_rules = true` and provide the required IP ranges.
 
-> #### Additionally, If you enable Private endpoint feature, firewall rules are not relevant. It does not require adding any IP addresses to the firewall on Azure SQL Database or changing the connection string of your application for private links.
+> #### Additionally, If you enable Private endpoint feature, firewall rules are not relevant. It does not require adding any IP addresses to the firewall on Azure SQL Database or changing the connection string of your application for private links
 
 ## Azure SQL Geo-Replication and Failover Groups
 
@@ -196,8 +196,7 @@ Microsoft Azure offers different types of business continuity solutions for thei
 
 You can put several single databases on the same SQL Database server into the same failover group. If you add a single database to the failover group, it automatically creates a secondary database using the same edition and the compute size on the secondary server. You specified that server when the failover group was created.
 
-By default, this feature not enabled on this module. To create SQL geo-replicated auto failover groups, set the argument `enable_failover_group = true`. This create a failover groups secondary server location `secondary_sql_server_location` to be provided. 
-
+By default, this feature not enabled on this module. To create SQL geo-replicated auto failover groups, set the argument `enable_failover_group = true`. This create a failover groups secondary server location `secondary_sql_server_location` to be provided.
 
 ## Using Failover Groups with Private Link for Azure SQL Database
 
@@ -215,7 +214,7 @@ Clients can connect to the Private endpoint from the same VNet, peered VNet in s
 
 This module uses the tool slqcmd as a local provisioner to connect and inject the SQL initialization. To enable this feature set the argument `initialize_sql_script_execution = true` and use `sqldb_init_script_file` argument to provide the path to SQL script.
 
-> #### Note: To run this utility from your desktop, to create SQL database schema using SQL script requires firewall rule. Allow access to Azure services can be enabled by setting `start_ip_address` and `end_ip_address` to `0.0.0.0` and add your machine public IP to SQL firewall rules to run this feature else this will fail to run and exit the terraform plan.
+> #### Note: To run this utility from your desktop, to create SQL database schema using SQL script requires firewall rule. Allow access to Azure services can be enabled by setting `start_ip_address` and `end_ip_address` to `0.0.0.0` and add your machine public IP to SQL firewall rules to run this feature else this will fail to run and exit the terraform plan
 
 ## Tagging
 

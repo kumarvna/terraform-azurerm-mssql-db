@@ -1,6 +1,7 @@
 module "mssql-server" {
-  source                          = "kumarvna/mssql-db/azurerm"
-  version                         = "1.0.0"
+  //source                          = "kumarvna/mssql-db/azurerm"
+  //version                         = "1.0.0"
+  source = "github.com/kumarvna/terraform-azurerm-mssql-db?ref=develop"
   
 # Resource Group, VNet and Subnet declarations
   create_resource_group           = false

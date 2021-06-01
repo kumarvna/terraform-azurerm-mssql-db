@@ -1,6 +1,6 @@
 variable "create_resource_group" {
     description = "Whether to create resource group and use it for all networking resources"
-    default     = false
+    default     = true
 }
 
 variable "resource_group_name" {
@@ -11,6 +11,11 @@ variable "resource_group_name" {
 variable "location" {
     description = "The location/region to keep all your network resources. To get the list of all locations with table format from azure cli, run 'az account list-locations -o table'"
     default     = "westeurope"
+}
+
+variable "random_password_length" {
+  description = "The desired length of random password created by this module"
+  default     = 24
 }
 
 variable "enable_auditing_policy" {
