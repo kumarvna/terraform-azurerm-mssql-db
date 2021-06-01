@@ -94,6 +94,7 @@ variable "virtual_network_name" {
 
 variable "private_subnet_address_prefix" {
     description = "The name of the subnet for private endpoints"
+    default = null
 }
 
 variable "firewall_rules" {

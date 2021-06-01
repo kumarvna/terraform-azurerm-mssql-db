@@ -50,7 +50,7 @@ resource "random_password" "main" {
   special     = false
 
   keepers = {
-    administrator_login_password = var.os_flavor
+    administrator_login_password = var.sqlserver_name
   }
 }
 
@@ -224,7 +224,7 @@ resource "azurerm_subnet" "snet-ep" {
   name                                           = "snet-endpoint-shared-${local.location}"
   resource_group_name                            = local.resource_group_name
   virtual_network_name                           = var.virtual_network_name
-  address_prefix                                 = var.private_subnet_address_prefix
+  address_prefixes                               = var.private_subnet_address_prefix
   enforce_private_link_endpoint_network_policies = true
 }
 
