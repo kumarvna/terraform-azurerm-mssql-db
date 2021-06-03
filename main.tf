@@ -74,15 +74,12 @@ resource "azurerm_sql_server" "primary" {
 }
 
 resource "azurerm_mssql_server_extended_auditing_policy" "main" {
-  for_each = local.if_extended_auditing_policy_enabled
-  content {
-    server_id                               = var.enable_failover_group == true ? [azurerm_sql_server.primary.id, azurerm_sql_server.secondary.id] : [azurerm_sql_server.primary.id]
-    storage_endpoint                        = azurerm_storage_account.storeacc.0.primary_blob_endpoint
-    storage_account_access_key              = azurerm_storage_account.storeacc.0.primary_access_key
-    storage_account_access_key_is_secondary = false
-    retention_days                          = var.log_retention_days
-  }
-
+  count                                   = var.enable_auditing_policy ? 1 : 0
+  server_id                               = azurerm_sql_server.primary.id
+  storage_endpoint                        = azurerm_storage_account.storeacc.0.primary_blob_endpoint
+  storage_account_access_key              = azurerm_storage_account.storeacc.0.primary_access_key
+  storage_account_access_key_is_secondary = false
+  retention_days                          = var.log_retention_days
 }
 
 
