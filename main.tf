@@ -63,15 +63,28 @@ resource "azurerm_sql_server" "primary" {
   administrator_login_password = random_password.main.result
   tags                         = merge({ "Name" = format("%s-primary", var.sqlserver_name) }, var.tags, )
 
-  dynamic "extended_auditing_policy" {
+  /*  dynamic "extended_auditing_policy" {
     for_each = local.if_extended_auditing_policy_enabled
     content {
       storage_account_access_key = azurerm_storage_account.storeacc.0.primary_access_key
       storage_endpoint           = azurerm_storage_account.storeacc.0.primary_blob_endpoint
       retention_in_days          = var.log_retention_days
     }
-  }
+  } */
 }
+
+resource "azurerm_mssql_server_extended_auditing_policy" "main" {
+  for_each = local.if_extended_auditing_policy_enabled
+  content {
+    server_id                               = var.enable_failover_group == true ? [azurerm_sql_server.primary.id, azurerm_sql_server.secondary.id] : [azurerm_sql_server.primary.id]
+    storage_endpoint                        = azurerm_storage_account.storeacc.0.primary_blob_endpoint
+    storage_account_access_key              = azurerm_storage_account.storeacc.0.primary_access_key
+    storage_account_access_key_is_secondary = false
+    retention_days                          = var.log_retention_days
+  }
+
+}
+
 
 resource "azurerm_sql_server" "secondary" {
   count                        = var.enable_failover_group ? 1 : 0
