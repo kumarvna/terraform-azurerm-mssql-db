@@ -79,7 +79,7 @@ resource "azurerm_mssql_server_extended_auditing_policy" "main" {
   storage_endpoint                        = azurerm_storage_account.storeacc.0.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.storeacc.0.primary_access_key
   storage_account_access_key_is_secondary = false
-  retention_days                          = var.log_retention_days
+  retention_in_days                       = var.log_retention_days
 }
 
 
