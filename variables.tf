@@ -154,7 +154,7 @@ variable "firewall_rules" {
   default = []
 }
 
-variable "enable_audit_log_monitoring" {
+variable "enable_log_monitoring" {
   description = "Enable audit events to Azure Monitor?"
   default     = false
 }

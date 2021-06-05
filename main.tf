@@ -44,7 +44,7 @@ resource "random_string" "str" {
 }
 
 resource "azurerm_storage_account" "storeacc" {
-  count                     = var.enable_sql_server_extended_auditing_policy || var.enable_database_extended_auditing_policy || var.enable_vulnerability_assessment || var.enable_audit_log_monitoring == true ? 1 : 0
+  count                     = var.enable_sql_server_extended_auditing_policy || var.enable_database_extended_auditing_policy || var.enable_vulnerability_assessment || var.enable_log_monitoring == true ? 1 : 0
   name                      = var.storage_account_name == null ? "stsqlauditlogs${element(concat(random_string.str.*.result, [""]), 0)}" : substr(var.storage_account_name, 0, 24)
   resource_group_name       = local.resource_group_name
   location                  = local.location
@@ -103,7 +103,7 @@ resource "azurerm_mssql_server_extended_auditing_policy" "primary" {
   storage_account_access_key              = azurerm_storage_account.storeacc.0.primary_access_key
   storage_account_access_key_is_secondary = false
   retention_in_days                       = var.log_retention_days
-  log_monitoring_enabled                  = var.enable_audit_log_monitoring == true && var.log_analytics_workspace_name != null ? true : false
+  log_monitoring_enabled                  = var.enable_log_monitoring == true && var.log_analytics_workspace_name != null ? true : false
 }
 
 resource "azurerm_sql_server" "secondary" {
@@ -131,7 +131,7 @@ resource "azurerm_mssql_server_extended_auditing_policy" "secondary" {
   storage_account_access_key              = azurerm_storage_account.storeacc.0.primary_access_key
   storage_account_access_key_is_secondary = false
   retention_in_days                       = var.log_retention_days
-  log_monitoring_enabled                  = var.enable_audit_log_monitoring == true && var.log_analytics_workspace_name != null ? true : null
+  log_monitoring_enabled                  = var.enable_log_monitoring == true && var.log_analytics_workspace_name != null ? true : null
 }
 
 
@@ -167,7 +167,7 @@ resource "azurerm_mssql_database_extended_auditing_policy" "primary" {
   storage_account_access_key              = azurerm_storage_account.storeacc.0.primary_access_key
   storage_account_access_key_is_secondary = false
   retention_in_days                       = var.log_retention_days
-  log_monitoring_enabled                  = var.enable_audit_log_monitoring == true && var.log_analytics_workspace_name != null ? true : null
+  log_monitoring_enabled                  = var.enable_log_monitoring == true && var.log_analytics_workspace_name != null ? true : null
 }
 
 #-----------------------------------------------------------------------------------------------
@@ -414,18 +414,20 @@ resource "azurerm_private_dns_a_record" "arecord2" {
 # azurerm monitoring diagnostics  - Default is "false" 
 #------------------------------------------------------------------
 resource "azurerm_monitor_diagnostic_setting" "extaudit" {
-  count                      = var.enable_audit_log_monitoring == true && var.log_analytics_workspace_name != null ? 1 : 0
+  count                      = var.enable_log_monitoring == true && var.log_analytics_workspace_name != null ? 1 : 0
   name                       = lower("extaudit-${var.database_name}-diag")
   target_resource_id         = azurerm_sql_database.db.id
   log_analytics_workspace_id = data.azurerm_log_analytics_workspace.logws.0.id
   storage_account_id         = azurerm_storage_account.storeacc.0.id
 
-  log {
-    category = "SQLSecurityAuditEvents"
-    enabled  = true
-
-    retention_policy {
-      enabled = false
+  dynamic "log" {
+    for_each = var.extaudit_diag_logs
+    content {
+      category = log.value
+      enabled  = true
+      retention_policy {
+        enabled = false
+      }
     }
   }
 
