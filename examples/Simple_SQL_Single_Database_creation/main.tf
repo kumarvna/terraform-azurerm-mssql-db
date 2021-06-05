@@ -20,7 +20,7 @@ module "mssql-server" {
   sqldb_service_objective_name = "S1"
 
   # SQL Server and Database Audit policies  
-  enable_extended_auditing_policy = true
+  enable_extended_auditing_policy = false
   enable_threat_detection_policy  = true
   log_retention_days              = 30
   sql_admin_email_addresses       = ["user@example.com"]
