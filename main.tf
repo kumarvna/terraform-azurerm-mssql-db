@@ -2,7 +2,7 @@ locals {
   resource_group_name                 = element(coalescelist(data.azurerm_resource_group.rgrp.*.name, azurerm_resource_group.rg.*.name, [""]), 0)
   location                            = element(coalescelist(data.azurerm_resource_group.rgrp.*.location, azurerm_resource_group.rg.*.location, [""]), 0)
   if_threat_detection_policy_enabled  = var.enable_threat_detection_policy ? [{}] : []
-  if_extended_auditing_policy_enabled = var.enable_auditing_policy ? [{}] : []
+  if_extended_auditing_policy_enabled = var.enable_extended_auditing_policy ? [{}] : []
 }
 
 #---------------------------------------------------------
@@ -21,13 +21,15 @@ resource "azurerm_resource_group" "rg" {
   tags     = merge({ "Name" = format("%s", var.resource_group_name) }, var.tags, )
 }
 
+data "azurerm_client_config" "current" {}
+
 #---------------------------------------------------------
 # Storage Account to keep Audit logs - Default is "false"
 #----------------------------------------------------------
 
 resource "azurerm_storage_account" "storeacc" {
-  count                     = var.enable_threat_detection_policy || var.enable_auditing_policy ? 1 : 0
-  name                      = "stsqlauditlogs"
+  count                     = var.enable_threat_detection_policy || var.enable_extended_auditing_policy ? 1 : 0
+  name                      = var.storage_account_name == null ? "stsqlauditlogs" : var.storage_account_name
   resource_group_name       = local.resource_group_name
   location                  = local.location
   account_kind              = "StorageV2"
@@ -36,6 +38,12 @@ resource "azurerm_storage_account" "storeacc" {
   enable_https_traffic_only = true
   min_tls_version           = "TLS1_2"
   tags                      = merge({ "Name" = format("%s", "stsqlauditlogs") }, var.tags, )
+}
+
+resource "azurerm_storage_container" "storcont" {
+  name                  = "vulnerability-assessment"
+  storage_account_name  = azurerm_storage_account.storeacc.0.name
+  container_access_type = "private"
 }
 
 #-------------------------------------------------------------
@@ -63,25 +71,22 @@ resource "azurerm_sql_server" "primary" {
   administrator_login_password = random_password.main.result
   tags                         = merge({ "Name" = format("%s-primary", var.sqlserver_name) }, var.tags, )
 
-  /*  dynamic "extended_auditing_policy" {
-    for_each = local.if_extended_auditing_policy_enabled
+  dynamic "identity" {
+    for_each = var.identity == true ? [1] : [0]
     content {
-      storage_account_access_key = azurerm_storage_account.storeacc.0.primary_access_key
-      storage_endpoint           = azurerm_storage_account.storeacc.0.primary_blob_endpoint
-      retention_in_days          = var.log_retention_days
+      type = "SystemAssigned"
     }
-  } */
+  }
 }
 
-resource "azurerm_mssql_server_extended_auditing_policy" "main" {
-  count                                   = var.enable_auditing_policy ? 1 : 0
+resource "azurerm_mssql_server_extended_auditing_policy" "primary" {
+  count                                   = var.enable_extended_auditing_policy ? 1 : 0
   server_id                               = azurerm_sql_server.primary.id
   storage_endpoint                        = azurerm_storage_account.storeacc.0.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.storeacc.0.primary_access_key
   storage_account_access_key_is_secondary = false
   retention_in_days                       = var.log_retention_days
 }
-
 
 resource "azurerm_sql_server" "secondary" {
   count                        = var.enable_failover_group ? 1 : 0
@@ -93,15 +98,23 @@ resource "azurerm_sql_server" "secondary" {
   administrator_login_password = random_password.main.result
   tags                         = merge({ "Name" = format("%s-secondary", var.sqlserver_name) }, var.tags, )
 
-  dynamic "extended_auditing_policy" {
-    for_each = local.if_extended_auditing_policy_enabled
+  dynamic "identity" {
+    for_each = var.identity == true ? [1] : [0]
     content {
-      storage_account_access_key = azurerm_storage_account.storeacc.0.primary_access_key
-      storage_endpoint           = azurerm_storage_account.storeacc.0.primary_blob_endpoint
-      retention_in_days          = var.log_retention_days
+      type = "SystemAssigned"
     }
   }
 }
+
+resource "azurerm_mssql_server_extended_auditing_policy" "secondary" {
+  count                                   = var.enable_failover_group && var.enable_extended_auditing_policy ? 1 : 0
+  server_id                               = azurerm_sql_server.secondary.0.id
+  storage_endpoint                        = azurerm_storage_account.storeacc.0.primary_blob_endpoint
+  storage_account_access_key              = azurerm_storage_account.storeacc.0.primary_access_key
+  storage_account_access_key_is_secondary = false
+  retention_in_days                       = var.log_retention_days
+}
+
 
 #--------------------------------------------------------------------
 # SQL Database creation - Default edition:"Standard" and objective:"S1"
@@ -123,17 +136,73 @@ resource "azurerm_sql_database" "db" {
       storage_endpoint           = azurerm_storage_account.storeacc.0.primary_blob_endpoint
       storage_account_access_key = azurerm_storage_account.storeacc.0.primary_access_key
       retention_days             = var.log_retention_days
-      email_addresses            = var.email_addresses_for_alerts
+      email_addresses            = var.sql_admin_email_addresses
     }
   }
+}
 
-  dynamic "extended_auditing_policy" {
-    for_each = local.if_extended_auditing_policy_enabled
-    content {
-      storage_account_access_key = azurerm_storage_account.storeacc.0.primary_access_key
-      storage_endpoint           = azurerm_storage_account.storeacc.0.primary_blob_endpoint
-      retention_in_days          = var.log_retention_days
-    }
+resource "azurerm_mssql_database_extended_auditing_policy" "primary" {
+  count                                   = var.enable_extended_auditing_policy ? 1 : 0
+  database_id                             = azurerm_sql_database.db.id
+  storage_endpoint                        = azurerm_storage_account.storeacc.0.primary_blob_endpoint
+  storage_account_access_key              = azurerm_storage_account.storeacc.0.primary_access_key
+  storage_account_access_key_is_secondary = false
+  retention_in_days                       = var.log_retention_days
+}
+
+#-----------------------------------------------------------------------------------------------
+# SQL ServerVulnerability assessment and alert to admin team  - Default is "false"
+#-----------------------------------------------------------------------------------------------
+
+resource "azurerm_mssql_server_security_alert_policy" "sap_primary" {
+  count                      = var.enable_vulnerability_assessment ? 1 : 0
+  resource_group_name        = local.resource_group_name
+  server_name                = azurerm_sql_server.primary.name
+  state                      = "Enabled"
+  email_account_admins       = true
+  email_addresses            = var.sql_admin_email_addresses
+  retention_days             = var.threat_detection_audit_logs_retention_days
+  disabled_alerts            = var.disabled_alerts
+  storage_account_access_key = azurerm_storage_account.storeacc.0.primary_access_key
+  storage_endpoint           = azurerm_storage_account.storeacc.0.primary_blob_endpoint
+}
+
+resource "azurerm_mssql_server_security_alert_policy" "sap_secondary" {
+  count                      = var.enable_vulnerability_assessment && var.enable_failover_group ? 1 : 0
+  resource_group_name        = local.resource_group_name
+  server_name                = azurerm_sql_server.secondary.0.name
+  state                      = "Enabled"
+  email_account_admins       = true
+  email_addresses            = var.sql_admin_email_addresses
+  retention_days             = var.threat_detection_audit_logs_retention_days
+  disabled_alerts            = var.disabled_alerts
+  storage_account_access_key = azurerm_storage_account.storeacc.0.primary_access_key
+  storage_endpoint           = azurerm_storage_account.storeacc.0.primary_blob_endpoint
+}
+
+resource "azurerm_mssql_server_vulnerability_assessment" "va_primary" {
+  count                           = var.enable_vulnerability_assessment ? 1 : 0
+  server_security_alert_policy_id = azurerm_mssql_server_security_alert_policy.sap_primary.0.id
+  storage_container_path          = "${azurerm_storage_account.storeacc.0.primary_blob_endpoint}${azurerm_storage_container.storcont.name}/"
+  storage_account_access_key      = azurerm_storage_account.storeacc.0.primary_access_key
+
+  recurring_scans {
+    enabled                   = true
+    email_subscription_admins = true
+    emails                    = var.sql_admin_email_addresses
+  }
+}
+
+resource "azurerm_mssql_server_vulnerability_assessment" "va_secondary" {
+  count                           = var.enable_vulnerability_assessment && var.enable_failover_group == true ? 1 : 0
+  server_security_alert_policy_id = azurerm_mssql_server_security_alert_policy.sap_secondary.0.id
+  storage_container_path          = "${azurerm_storage_account.storeacc.0.primary_blob_endpoint}${azurerm_storage_container.storcont.name}/"
+  storage_account_access_key      = azurerm_storage_account.storeacc.0.primary_access_key
+
+  recurring_scans {
+    enabled                   = true
+    email_subscription_admins = true
+    emails                    = var.sql_admin_email_addresses
   }
 }
 
@@ -151,8 +220,6 @@ resource "null_resource" "create_sql" {
 #-----------------------------------------------------------------------------------------------
 # Adding AD Admin to SQL Server - Secondary server depend on Failover Group - Default is "false"
 #-----------------------------------------------------------------------------------------------
-
-data "azurerm_client_config" "current" {}
 
 resource "azurerm_sql_active_directory_administrator" "aduser1" {
   count               = var.enable_sql_ad_admin ? 1 : 0
