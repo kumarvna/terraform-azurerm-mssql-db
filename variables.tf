@@ -13,6 +13,11 @@ variable "storage_account_name" {
   default     = null
 }
 
+variable "log_analytics_workspace_name" {
+  description = "The name of log analytics workspace name"
+  default     = null
+}
+
 variable "location" {
   description = "The location/region to keep all your network resources. To get the list of all locations with table format from azure cli, run 'az account list-locations -o table'"
   default     = "westeurope"
@@ -23,8 +28,13 @@ variable "random_password_length" {
   default     = 24
 }
 
-variable "enable_extended_auditing_policy" {
-  description = "Audit policy for SQL server and database"
+variable "enable_sql_server_extended_auditing_policy" {
+  description = "Manages Extended Audit policy for SQL servers"
+  default     = true
+}
+
+variable "enable_database_extended_auditing_policy" {
+  description = "Manages Extended Audit policy for SQL database"
   default     = false
 }
 
@@ -36,6 +46,16 @@ variable "enable_threat_detection_policy" {
 variable "sqlserver_name" {
   description = "SQL server Name"
   default     = "sqldbserver-demodbapp"
+}
+
+variable "admin_username" {
+  description = "The administrator login name for the new SQL Server"
+  default     = null
+}
+
+variable "admin_password" {
+  description = "The password associated with the admin_username user"
+  default     = null
 }
 
 variable "database_name" {
@@ -134,6 +154,11 @@ variable "firewall_rules" {
   default = []
 }
 
+variable "enable_audit_log_monitoring" {
+  description = "Enable audit events to Azure Monitor?"
+  default     = false
+}
+
 variable "initialize_sql_script_execution" {
   description = "Allow/deny to Create and initialize a Microsoft SQL Server database"
   default     = false
@@ -143,8 +168,15 @@ variable "sqldb_init_script_file" {
   description = "SQL Script file name to create and initialize the database"
 }
 
+variable "extaudit_diag_logs" {
+  description = "Database Monitoring Category details for Azure Diagnostic setting"
+  default     = ["SQLSecurityAuditEvents", "SQLInsights", "AutomaticTuning", "QueryStoreRuntimeStatistics", "QueryStoreWaitStatistics", "Errors", "DatabaseWaitStatistics", "Timeouts", "Blocks", "Deadlocks"]
+}
+
 variable "tags" {
   description = "A map of tags to add to all resources"
   type        = map(string)
   default     = {}
 }
+
+
