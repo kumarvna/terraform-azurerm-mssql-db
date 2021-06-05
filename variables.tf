@@ -5,7 +5,7 @@ variable "create_resource_group" {
 
 variable "resource_group_name" {
   description = "A container that holds related resources for an Azure solution"
-  default     = "rg-demo-westeurope-01"
+  default     = ""
 }
 
 variable "storage_account_name" {
@@ -20,7 +20,7 @@ variable "log_analytics_workspace_name" {
 
 variable "location" {
   description = "The location/region to keep all your network resources. To get the list of all locations with table format from azure cli, run 'az account list-locations -o table'"
-  default     = "westeurope"
+  default     = ""
 }
 
 variable "random_password_length" {
@@ -45,7 +45,7 @@ variable "enable_threat_detection_policy" {
 
 variable "sqlserver_name" {
   description = "SQL server Name"
-  default     = "sqldbserver-demodbapp"
+  default     = ""
 }
 
 variable "admin_username" {

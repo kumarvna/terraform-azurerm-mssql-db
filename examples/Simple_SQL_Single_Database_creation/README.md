@@ -1,56 +1,73 @@
-# Azure SQL Database Using Failover Groups with Private endpoints
+# Simple Azure SQL single database creation
 
-Terraform module for Azure to create a SQL server with initial database, Azure AD login, Firewall rules for SQL, Failover Group, Private endpoint, and corresponding private DNS zone for privatelink A records. It also allows creating an SQL server database with a SQL script initialization.
+Terraform module to create a SQL server with initial database, Azure AD login, Firewall rules for SQL, optional azure monitoring and vulnerability assessment. It also allows creating an SQL server database with a SQL script initialization.
 
 ## Module Usage
 
-### Simple Azure SQL single database creation
-
-Following example is to create a simple database with basic firewall rules to make SQL database available to Azure resources, services and client IP ranges. This module also supports optional AD admin user for DB, Audit Polices, and creation of database schema using SQL script. 
-
-```
+```hcl
 module "mssql-server" {
-  source                          = "kumarvna/mssql-db/azurerm"
-  version                         = "1.0.0"
+  source  = "kumarvna/mssql-db/azurerm"
+  version = "1.1.0"
 
-# Resource Group, VNet and Subnet declarations
-  create_resource_group           = false
-  resource_group_name             = "rg-demo-westeurope-01"
-  location                        = "westeurope"
-  virtual_network_name            = "vnet-demo-westeurope-001"
-  private_subnet_address_prefix   = "10.0.5.0/29"
+  # By default, this module will create a resource group, proivde the name here
+  # to use an existing resource group, specify the existing resource group name,
+  # and set the argument to `create_resource_group = false`. Location will be same as existing RG.
+  create_resource_group         = false
+  resource_group_name           = "rg-shared-westeurope-01"
+  location                      = "westeurope"
+  virtual_network_name          = "vnet-shared-hub-westeurope-001"
+  private_subnet_address_prefix = ["10.1.5.0/29"]
 
-# SQL Server and Database scaling options
-  sqlserver_name                  = "sqldbserver-db01"
-  database_name                   = "demomssqldb"
-  sql_database_edition            = "Standard"
-  sqldb_service_objective_name    = "S1"
+  # SQL Server and Database details
+  # The valid service objective name for the database include S0, S1, S2, S3, P1, P2, P4, P6, P11 
+  sqlserver_name               = "sqldbserver01"
+  database_name                = "demomssqldb"
+  sql_database_edition         = "Standard"
+  sqldb_service_objective_name = "S1"
 
-# SQL Server and Database Audit policies  
-  enable_auditing_policy          = true
-  enable_threat_detection_policy  = true
-  log_retention_days              = 30
-  email_addresses_for_alerts      = ["user@example.com"]
+  # SQL Server and Database Audit policies 
+  # By default database servers extended auditing policy enabled. you can turn of using  enable_sql_server_extended_auditing_policy 
+  # By default database extended auditing policy is turned off. you can manage the setting by adding `enable_database_extended_auditing_policy` 
+  # To manage Azure Defender for Azure SQL database servers set `enable_threat_detection_policy` to true 
+  enable_threat_detection_policy = true
+  log_retention_days             = 30
 
-# AD administrator for an Azure SQL server
-  enable_sql_ad_admin             = true
-  ad_admin_login_name             = "firstname.lastname@example.com"
+  # schedule scan notifications to the subscription administrators
+  # Manages the Vulnerability Assessment for a MS SQL Server set `enable_vulnerability_assessment` to `true`
+  enable_vulnerability_assessment = true
+  sql_admin_email_addresses       = ["user@example.com", "firstname.lastname@example.com"]
 
-# Firewall Rules to allow azure and external clients
-  enable_firewall_rules           = true
+  # AD administrator for an Azure SQL server
+  # Allows you to set a user or group as the AD administrator for an Azure SQL server
+  ad_admin_login_name = "firstname.lastname@example.com"
+
+  # (Optional) To enable Azure Monitoring for Azure SQL database including audit logs
+  # log analytic workspace name required
+  enable_log_monitoring        = true
+  log_analytics_workspace_name = "loganalytics-we-sharedtest2"
+
+  # Firewall Rules to allow azure and external clients and specific Ip address/ranges. 
+  enable_firewall_rules = true
   firewall_rules = [
-                {name             = "access-to-azure"
-                start_ip_address  = "0.0.0.0"
-                end_ip_address    = "0.0.0.0"},
-                {name             = "desktop-ip"
-                start_ip_address  = "123.201.75.71"
-                end_ip_address    = "123.201.75.71"}]
+    {
+      name             = "access-to-azure"
+      start_ip_address = "0.0.0.0"
+      end_ip_address   = "0.0.0.0"
+    },
+    {
+      name             = "desktop-ip"
+      start_ip_address = "49.204.225.134"
+      end_ip_address   = "49.204.225.134"
+    }
+  ]
 
-# Create and initialize a database with SQL script
-  initialize_sql_script_execution = false
-  sqldb_init_script_file          = "./artifacts/db-init-sample.sql"
+  # Create and initialize a database with custom SQL script
+  # need sqlcmd utility to run this command
+  # your desktop public IP must be added firewall rules to run this command 
+  initialize_sql_script_execution = true
+  sqldb_init_script_file          = "../artifacts/db-init-sample.sql"
 
-# Tags for Azure Resources
+  # Tags for Azure Resources
   tags = {
     Terraform   = "true"
     Environment = "dev"
@@ -63,10 +80,35 @@ module "mssql-server" {
 
 To run this example you need to execute following Terraform commands
 
-```
-$ terraform init
-$ terraform plan
-$ terraform apply
+```bash
+terraform init
+terraform plan
+terraform apply
 ```
 
 Run `terraform destroy` when you don't need these resources.
+
+## Outputs
+
+Name | Description
+---- | -----------
+`resource_group_name` | The name of the resource group in which resources are created
+`resource_group_location`| The location of the resource group in which resources are created
+`storage_account_id`|The ID of the storage account
+`storage_account_name`|The name of the storage account
+`primary_sql_server_id`|The primary Microsoft SQL Server ID
+`primary_sql_server_fqdn`|The fully qualified domain name of the primary Azure SQL Server
+`secondary_sql_server_id`|The secondary Microsoft SQL Server ID
+`secondary_sql_server_fqdn`|The fully qualified domain name of the secondary Azure SQL Server
+`sql_server_admin_user`|SQL database administrator login id
+`sql_server_admin_password`|SQL database administrator login password
+`sql_database_id`|The SQL Database ID
+`sql_database_name`|The SQL Database Name
+`sql_failover_group_id`|A failover group of databases on a collection of Azure SQL servers
+`primary_sql_server_private_endpoint`|id of the Primary SQL server Private Endpoint
+`secondary_sql_server_private_endpoint`|id of the Primary SQL server Private Endpoint
+`sql_server_private_dns_zone_domain`|DNS zone name of SQL server Private endpoints dns name records
+`primary_sql_server_private_endpoint_ip`|Priamary SQL server private endpoint IPv4 Addresses
+`primary_sql_server_private_endpoint_fqdn`|Priamary SQL server private endpoint IPv4 Addresses
+`secondary_sql_server_private_endpoint_ip`|Secondary SQL server private endpoint IPv4 Addresses
+`secondary_sql_server_private_endpoint_fqdn`|Secondary SQL server private endpoint IPv4 Addresses
