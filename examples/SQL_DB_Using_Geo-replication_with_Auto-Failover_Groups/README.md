@@ -27,12 +27,12 @@ module "mssql-server" {
   # To turn off set enable_sql_server_extended_auditing_policy to `false`  
   # DB extended auditing policy defaults to `false`. 
   # to tun on set the variable `enable_database_extended_auditing_policy` to `true` 
-  # To enable Azure Defender for Azure SQL database servers set `enable_threat_detection_policy` to true 
+  # To enable Azure Defender for database set `enable_threat_detection_policy` to true 
   enable_threat_detection_policy = true
   log_retention_days             = 30
 
   # schedule scan notifications to the subscription administrators
-  # Manages the Vulnerability Assessment for a MS SQL Server set `enable_vulnerability_assessment` to `true`
+  # Manage Vulnerability Assessment set `enable_vulnerability_assessment` to `true`
   enable_vulnerability_assessment = false
   sql_admin_email_addresses       = ["user@example.com", "firstname.lastname@example.com"]
 
