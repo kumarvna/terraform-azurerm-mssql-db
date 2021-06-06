@@ -56,7 +56,7 @@ module "mssql-server" {
   # schedule scan notifications to the subscription administrators
   # Manage Vulnerability Assessment set `enable_vulnerability_assessment` to `true`
   enable_vulnerability_assessment = false
-  sql_admin_email_addresses       = ["user@example.com", "firstname.lastname@example.com"]
+  email_addresses_for_alerts      = ["user@example.com", "firstname.lastname@example.com"]
 
   # AD administrator for an Azure SQL server
   # Allows you to set a user or group as the AD administrator for an Azure SQL server
@@ -261,7 +261,7 @@ Name | Description | Type | Default
 `enable_firewall_rules`|Manages a Firewall Rule for a MySQL Server|string|`"false"`
 `firewall_rules`| list of firewall rules to add SQL servers| `list(object({}))`| `[]`
 `enable_failover_group`|Create a failover group of databases on a collection of Azure SQL servers|string| `"false"`
-`secondary_sql_server_location`|The location of the secondary SQL server (applicable if Failover groups enabled)|`"northeurope"`
+`secondary_sql_server_location`|The location of the secondary SQL server (applicable if Failover groups enabled)|string|`"northeurope"`
 `enable_private_endpoint`|Azure Private Endpoint is a network interface that connects you privately and securely to a service powered by Azure Private Link|string|`"false"`
 `virtual_network_name` | The name of the virtual network|string|`""`
 `private_subnet_address_prefix`|A list of subnets address prefixes inside virtual network| list |`[]`

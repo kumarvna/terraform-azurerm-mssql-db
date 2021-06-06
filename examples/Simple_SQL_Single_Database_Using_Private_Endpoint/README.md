@@ -36,7 +36,7 @@ module "mssql-server" {
   # schedule scan notifications to the subscription administrators
   # Manage Vulnerability Assessment set `enable_vulnerability_assessment` to `true`
   enable_vulnerability_assessment = false
-  sql_admin_email_addresses       = ["user@example.com", "firstname.lastname@example.com"]
+  email_addresses_for_alerts      = ["user@example.com", "firstname.lastname@example.com"]
 
   # enabling the Private Endpoints for Sql servers
   enable_private_endpoint = true

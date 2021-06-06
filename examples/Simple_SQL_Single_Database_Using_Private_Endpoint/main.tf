@@ -29,7 +29,7 @@ module "mssql-server" {
   # schedule scan notifications to the subscription administrators
   # Manage Vulnerability Assessment set `enable_vulnerability_assessment` to `true`
   enable_vulnerability_assessment = false
-  sql_admin_email_addresses       = ["user@example.com", "firstname.lastname@example.com"]
+  email_addresses_for_alerts      = ["user@example.com", "firstname.lastname@example.com"]
 
   # enabling the Private Endpoints for Sql servers
   enable_private_endpoint = true
@@ -61,8 +61,8 @@ module "mssql-server" {
   # Create and initialize a database with custom SQL script
   # need sqlcmd utility to run this command 
   # your desktop public IP must be added to firewall rules to run this command 
-  initialize_sql_script_execution = true
-  sqldb_init_script_file          = "../artifacts/db-init-sample.sql"
+  #initialize_sql_script_execution = true
+  #sqldb_init_script_file          = "../artifacts/db-init-sample.sql"
 
   # Tags for Azure Resources
   tags = {

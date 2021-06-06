@@ -37,7 +37,7 @@ module "mssql-server" {
   # schedule scan notifications to the subscription administrators
   # Manage Vulnerability Assessment set `enable_vulnerability_assessment` to `true`
   enable_vulnerability_assessment = false
-  sql_admin_email_addresses       = ["user@example.com", "firstname.lastname@example.com"]
+  email_addresses_for_alerts      = ["user@example.com", "firstname.lastname@example.com"]
 
   # AD administrator for an Azure SQL server
   # Allows you to set a user or group as the AD administrator for an Azure SQL server
@@ -112,7 +112,7 @@ module "mssql-server" {
   # schedule scan notifications to the subscription administrators
   # Manage Vulnerability Assessment set `enable_vulnerability_assessment` to `true`
   enable_vulnerability_assessment = false
-  sql_admin_email_addresses       = ["user@example.com", "firstname.lastname@example.com"]
+  email_addresses_for_alerts      = ["user@example.com", "firstname.lastname@example.com"]
 
   # enabling the Private Endpoints for Sql servers
   enable_private_endpoint = true
@@ -188,7 +188,7 @@ module "mssql-server" {
   # schedule scan notifications to the subscription administrators
   # Manage Vulnerability Assessment set `enable_vulnerability_assessment` to `true`
   enable_vulnerability_assessment = false
-  sql_admin_email_addresses       = ["user@example.com", "firstname.lastname@example.com"]
+  email_addresses_for_alerts      = ["user@example.com", "firstname.lastname@example.com"]
 
   # AD administrator for an Azure SQL server
   # Allows you to set a user or group as the AD administrator for an Azure SQL server
@@ -267,7 +267,7 @@ module "mssql-server" {
   # schedule scan notifications to the subscription administrators
   # Manage Vulnerability Assessment set `enable_vulnerability_assessment` to `true`
   enable_vulnerability_assessment = false
-  sql_admin_email_addresses       = ["user@example.com", "firstname.lastname@example.com"]
+  email_addresses_for_alerts      = ["user@example.com", "firstname.lastname@example.com"]
 
   # Sql failover group creation. required secondary locaiton input. 
   enable_failover_group         = true
