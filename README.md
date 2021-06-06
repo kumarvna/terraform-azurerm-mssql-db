@@ -31,10 +31,12 @@ module "mssql-server" {
 
   # By default, this module will not create a resource group
   # proivde a name to use an existing resource group, specify the existing resource group name,
-  # and set the argument to `create_resource_group = false`. Location will be same as existing RG. 
-  resource_group_name  = "rg-shared-westeurope-01"
-  location             = "westeurope"
-  virtual_network_name = "vnet-shared-hub-westeurope-001"
+  # and set the argument to `create_resource_group = false`. Location will be same as existing RG.
+  create_resource_group         = false
+  resource_group_name           = "rg-shared-westeurope-01"
+  location                      = "westeurope"
+  virtual_network_name          = "vnet-shared-hub-westeurope-001"
+  private_subnet_address_prefix = ["10.1.5.0/29"]
 
   # SQL Server and Database details
   # The valid service objective name for the database include S0, S1, S2, S3, P1, P2, P4, P6, P11 
@@ -55,6 +57,13 @@ module "mssql-server" {
   # Manage Vulnerability Assessment set `enable_vulnerability_assessment` to `true`
   enable_vulnerability_assessment = false
   email_addresses_for_alerts      = ["user@example.com", "firstname.lastname@example.com"]
+
+  # Sql failover group creation. required secondary locaiton input. 
+  enable_failover_group         = true
+  secondary_sql_server_location = "northeurope"
+
+  # enabling the Private Endpoints for Sql servers
+  enable_private_endpoint = true
 
   # AD administrator for an Azure SQL server
   # Allows you to set a user or group as the AD administrator for an Azure SQL server
@@ -81,8 +90,8 @@ module "mssql-server" {
   ]
 
   # Create and initialize a database with custom SQL script
-  # need sqlcmd utility to run this command
-  # your desktop public IP must be added firewall rules to run this command 
+  # need sqlcmd utility to run this command 
+  # your desktop public IP must be added to firewall rules to run this command 
   initialize_sql_script_execution = true
   sqldb_init_script_file          = "../artifacts/db-init-sample.sql"
 
