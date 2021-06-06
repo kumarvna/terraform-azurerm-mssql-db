@@ -1,12 +1,10 @@
 # Azure SQL Database - Using Failover Groups with Private Endpoints
 
-[![Terraform](https://img.shields.io/badge/Terraform%20-0.12-brightgreen.svg?style=flat)](https://github.com/hashicorp/terraform/releases) [![License](https://img.shields.io/badge/License%20-MIT-brightgreen.svg?style=flat)](https://github.com/kumarvna/cloudascode/blob/master/LICENSE)
+Terraform module to create an MS SQL server with initial database, Azure AD login, Firewall rules, geo-replication using auto-failover groups, Private endpoints, and corresponding private DNS zone. It also supports creating a database with a custom SQL script initialization.
 
-Terraform module for Azure to create a SQL server with initial database, Azure AD login, Firewall rules for SQL, Failover Group, Private endpoint, and corresponding private DNS zone for privatelink A records. It also allows creating an SQL server database with a SQL script initialization.
+A single database is the quickest and simplest deployment option for Azure SQL Database. You manage a single database within a SQL Database server, which is inside an Azure resource group in a specified Azure region with this module.
 
-A single database is the quickest and simplest deployment option for Azure SQL Database. You manage a single database within a SQL Database server, which is inside an Azure resource group in a specified Azure region. In this quickstart, you create a new resource group and SQL server for the new database.
-
-You can create a single database in the provisioned or serverless compute tier. A provisioned database is pre-allocated a fixed amount of compute resources, including CPU and memory, and uses one of two purchasing models. This quickstart creates a provisioned database using the vCore-based purchasing model, but you can also choose a DTU-based model.
+You can also create a single database in the provisioned or serverless compute tier. A provisioned database is pre-allocated a fixed amount of computing resources, including CPU and memory, and uses one of two purchasing models. This module creates a provisioned database using the vCore-based purchasing model, but you can choose a DTU-based model as well.
 
 ## These types of resources are supported
 
@@ -16,113 +14,79 @@ You can create a single database in the provisioned or serverless compute tier. 
 * [Active Directory Administrator](https://www.terraform.io/docs/providers/azurerm/r/sql_active_directory_administrator.html)
 * [Firewall rule for azure services, resources, and client IP](https://www.terraform.io/docs/providers/azurerm/r/sql_firewall_rule.html)
 * [SQL Failover Group](https://www.terraform.io/docs/providers/azurerm/r/sql_failover_group.html)
-* [SQL Private Endpoint](https://www.terraform.io/docs/providers/azurerm/r/private_endpoint.html)
-* [Private DNS zone for privatelink A records](https://www.terraform.io/docs/providers/azurerm/r/private_dns_zone.html)
+* [Private Endpoints](https://www.terraform.io/docs/providers/azurerm/r/private_endpoint.html)
+* [Private DNS zone for `privatelink` A records](https://www.terraform.io/docs/providers/azurerm/r/private_dns_zone.html)
 * [SQL Script execution to create Database](https://docs.microsoft.com/en-us/sql/ssms/scripting/sqlcmd-run-transact-sql-script-files?view=sql-server-ver15)
-
->*Note: If you prefer private endpoints feature, firewall rules are not relevant. However, this module can support both the Public and Private availability of the Database. Disable the firewall rules, in case you want to create the database using private endpoints only.*
+* [SQL Server and Database Extended Auditing Policy](https://docs.microsoft.com/en-us/azure/azure-sql/database/auditing-overview)
+* [Azure Defender for SQL](https://docs.microsoft.com/en-us/azure/azure-sql/database/azure-defender-for-sql)
+* [SQL Vulnerability Assessment](https://docs.microsoft.com/en-us/azure/azure-sql/database/sql-vulnerability-assessment)
+* [SQL Log Monitoring and Diagnostics](https://docs.microsoft.com/en-us/azure/azure-sql/database/metrics-diagnostic-telemetry-logging-streaming-export-configure?tabs=azure-portal)
 
 ## Module Usage
 
 ### Simple Azure SQL single database using private Endpoint
 
-Following example to create a SQL single database using private endpoints. This module also supports optional AD admin user for DB, Audit Policies, and creation of database schema using SQL script.
-
-```
+```hcl
 module "mssql-server" {
-  source                          = "kumarvna/mssql-db/azurerm"
-  version                         = "1.0.0"
+  source  = "kumarvna/mssql-db/azurerm"
+  version = "1.1.0"
 
-# Resource Group, VNet and Subnet declarations
-  create_resource_group           = false
-  resource_group_name             = "rg-demo-westeurope-01"
-  location                        = "westeurope"
-  virtual_network_name            = "vnet-demo-westeurope-001"
-  private_subnet_address_prefix   = "10.0.5.0/29"
+  # By default, this module will not create a resource group
+  # proivde a name to use an existing resource group, specify the existing resource group name,
+  # and set the argument to `create_resource_group = false`. Location will be same as existing RG. 
+  resource_group_name  = "rg-shared-westeurope-01"
+  location             = "westeurope"
+  virtual_network_name = "vnet-shared-hub-westeurope-001"
 
-# SQL Server and Database scaling options
-  sqlserver_name                  = "sqldbserver-db01"
-  database_name                   = "demomssqldb"
-  sql_database_edition            = "Standard"
-  sqldb_service_objective_name    = "S1"
+  # SQL Server and Database details
+  # The valid service objective name for the database include S0, S1, S2, S3, P1, P2, P4, P6, P11 
+  sqlserver_name               = "sqldbserver01"
+  database_name                = "demomssqldb"
+  sql_database_edition         = "Standard"
+  sqldb_service_objective_name = "S1"
 
-# SQL Server and Database Audit policies  
-  enable_auditing_policy          = true
-  enable_threat_detection_policy  = true
-  log_retention_days              = 30
-  email_addresses_for_alerts      = ["user@example.com"]
+  # SQL server extended auditing policy defaults to `true`. To turn off set enable_sql_server_extended_auditing_policy to `false`  
+  # DB extended auditing policy defaults to `false`. to tun on set the variable `enable_database_extended_auditing_policy` to `true` 
+  # To enable Azure Defender for Azure SQL database servers set `enable_threat_detection_policy` to true 
+  enable_threat_detection_policy = true
+  log_retention_days             = 30
 
-# AD administrator for an Azure SQL server
-  enable_sql_ad_admin             = true
-  ad_admin_login_name             = "firstname.lastname@example.com"
+  # schedule scan notifications to the subscription administrators
+  # Manages the Vulnerability Assessment for a MS SQL Server set `enable_vulnerability_assessment` to `true`
+  enable_vulnerability_assessment = false
+  sql_admin_email_addresses       = ["user@example.com", "firstname.lastname@example.com"]
 
-# Private Endpoint for Sql servers
-  enable_private_endpoint         = true
+  # AD administrator for an Azure SQL server
+  # Allows you to set a user or group as the AD administrator for an Azure SQL server
+  ad_admin_login_name = "firstname.lastname@example.com"
 
-# Create and initialize a database with SQL script
-  initialize_sql_script_execution = false
-  sqldb_init_script_file          = "./artifacts/db-init-sample.sql"
+  # (Optional) To enable Azure Monitoring for Azure SQL database including audit logs
+  # log analytic workspace name required
+  enable_log_monitoring        = true
+  log_analytics_workspace_name = "loganalytics-we-sharedtest2"
 
-# Tags for Azure Resources
-  tags = {
-    Terraform   = "true"
-    Environment = "dev"
-    Owner       = "test-user"
-  }
-}
-```
-
-### Azure SQL database creation using geo-replication with auto-failover groups
-
-Following example to create a SQL database using geo-replication with auto-failover groups. This module also supports optional AD admin user for DB, Audit Policies, Firewall Rules, and creation of database schema using SQL script.
-
-```
-module "mssql-server" {
-  source                          = "kumarvna/mssql-db/azurerm"
-  version                         = "1.0.0"
-
-# Resource Group, VNet and Subnet declarations
-  create_resource_group           = false
-  resource_group_name             = "rg-demo-westeurope-01"
-  location                        = "westeurope"
-  virtual_network_name            = "vnet-demo-westeurope-001"
-  private_subnet_address_prefix   = "10.0.5.0/29"
-
-# SQL Server and Database scaling options
-  sqlserver_name                  = "sqldbserver-db01"
-  database_name                   = "demomssqldb"
-  sql_database_edition            = "Standard"
-  sqldb_service_objective_name    = "S1"
-
-# SQL Server and Database Audit policies  
-  enable_auditing_policy          = true
-  enable_threat_detection_policy  = true
-  log_retention_days              = 30
-  email_addresses_for_alerts      = ["user@example.com"]
-
-# AD administrator for an Azure SQL server
-  enable_sql_ad_admin             = true
-  ad_admin_login_name             = "firstname.lastname@example.com"
-
-# Firewall Rules to allow azure and external clients
-  enable_firewall_rules           = true
+  # Firewall Rules to allow azure and external clients and specific Ip address/ranges. 
+  enable_firewall_rules = true
   firewall_rules = [
-                {name             = "access-to-azure"
-                start_ip_address  = "0.0.0.0"
-                end_ip_address    = "0.0.0.0"},
-                {name             = "desktop-ip"
-                start_ip_address  = "123.201.75.71"
-                end_ip_address    = "123.201.75.71"}]
+    {
+      name             = "access-to-azure"
+      start_ip_address = "0.0.0.0"
+      end_ip_address   = "0.0.0.0"
+    },
+    {
+      name             = "desktop-ip"
+      start_ip_address = "49.204.225.134"
+      end_ip_address   = "49.204.225.134"
+    }
+  ]
 
-# Sql failover group
-  enable_failover_group           = true
-  secondary_sql_server_location   = "northeurope"
+  # Create and initialize a database with custom SQL script
+  # need sqlcmd utility to run this command
+  # your desktop public IP must be added firewall rules to run this command 
+  initialize_sql_script_execution = true
+  sqldb_init_script_file          = "../artifacts/db-init-sample.sql"
 
-# Create and initialize a database with SQL script
-  initialize_sql_script_execution = false
-  sqldb_init_script_file          = "./artifacts/db-init-sample.sql"
-
-# Tags for Azure Resources
+  # Tags for Azure Resources
   tags = {
     Terraform   = "true"
     Environment = "dev"
@@ -131,7 +95,11 @@ module "mssql-server" {
 }
 ```
 
-## Requirements
+## Default Local Administrator and the Password
+
+This module utilizes __`sqladmin`__ as a local administrator on SQL servers. If you want to you use custom username, then specify the same by setting up the argument `admin_username` with a valid user string.
+
+By default, this module generates a strong password for all virtual machines also allows you to change the length of the random password (currently 24) using the `random_password_length = 32` variable. If you want to set the custom password, specify the argument `admin_password` with a valid string.
 
 ### Resource Group
 
@@ -141,9 +109,9 @@ By default, this module will not create a resource group and the name of an exis
 
 ### VNet and Subnets
 
-This module is not going to create a Vnet and corresponding services. However, this module expect you to provide VPC and Subnet address space for private end points.
+This module is not going to create a `VNet` and corresponding services. However, this module expect you to provide VPC and Subnet address space for private end points.
 
-Deploy Azure Vnet terraform module to overcome with this dependency. The [`terraform-azurerm-vnet`](https://github.com/tietoevry-cloud-infra/terraform-azurerm-vnet) module currently available from [GitHub](https://github.com/tietoevry-cloud-infra/terraform-azurerm-vnet), also aligned with this module.
+Deploy Azure VNet terraform module to overcome with this dependency. The [`terraform-azurerm-vnet`](https://github.com/tietoevry-cloud-infra/terraform-azurerm-vnet) module currently available from [GitHub](https://github.com/tietoevry-cloud-infra/terraform-azurerm-vnet), also aligned with this module.
 
 ### `sqlcmd` utility  
 
@@ -151,14 +119,17 @@ This module uses the tool [slqcmd](https://docs.microsoft.com/en-us/sql/tools/sq
 
 * [Microsoft OBDC Driver](https://www.microsoft.com/en-us/download/details.aspx?id=56567)
 
-* Install the Microsoft sqlcmd utility on [Ubuntu](https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-setup-tools?view=sql-server-ver15#ubuntu) or on [Windows](https://docs.microsoft.com/en-us/sql/tools/sqlcmd-utility?view=sql-server-ver15)
+* Install the Microsoft `sqlcmd` utility on [Ubuntu](https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-setup-tools?view=sql-server-ver15#ubuntu) or on [Windows](https://docs.microsoft.com/en-us/sql/tools/sqlcmd-utility?view=sql-server-ver15)
 
-## `extended_auditing_policy` - Auditing for SQL Database
+## Advance usage of module
 
-Auditing for Azure SQL Database tracks database events and writes them to an audit log in an Azure storage account, Log Analytics workspace, or Event Hubs. If server auditing is enabled, it always applies to the database. The database will be audited, regardless of the database auditing settings.
-By default, this feature not enabled on the module. To enable the threat detection policy for the database, set the argument `enable_auditing_policy = true`.
+### `extended_auditing_policy` - Auditing for SQL Database
 
-## `threat_detection_policy` - SQL Database Advanced Threat Protection
+Auditing for Azure SQL Database and servers tracks database events and writes them to an audit log in an Azure storage account. If server auditing is enabled, it always applies to the database. The database will be audited, regardless of the database auditing settings.
+
+By default, this feature enabled on SQL servers. To manage the threat detection policy for the severs set `enable_sql_server_extended_auditing_policy`to valid string. For database auditing, set the argument `enable_database_extended_auditing_policy` to `true`
+
+### `threat_detection_policy` - SQL Database Advanced Threat Protection
 
 Advanced Threat Protection for single and pooled databases detects anomalous activities indicating unusual and potentially harmful attempts to access or exploit databases. Advanced Threat Protection can identify Potential SQL injection, Access from unusual location or data center, Access from the unfamiliar principal or potentially harmful application, and Brute force SQL credentials - see more details in Advanced Threat Protection alerts.
 
@@ -166,13 +137,13 @@ By default, this feature not enabled on this module. To enable the threat detect
 
 > #### Note: Enabling `extended_auditing_policy` and `threat_detection_policy` features on SQL servers and database going to create a storage account to keep all audit logs. Log retention policy to be configured to keep the size within limits for this storage account. Note that this module creates resources that can cost money
 
-## Adding Active Directory Administrator to SQL Database
+### Adding Active Directory Administrator to SQL Database
 
 Azure Active Directory authentication is a mechanism of connecting to Microsoft Azure SQL Database by using identities in Azure Active Directory (Azure AD). This module adds the provided Azure Active Directory user/group to SQL Database as an administrator so that the user can login to this database with Azure AD authentication.
 
-By default, this feature not enabled on this module. To add the Active Directory Administrator to SQL database, set the argument `enable_sql_ad_admin = true` and provide valid Azure AD user login name (`ad_admin_login_name`).
+By default, this feature not enabled on this module. To add the Active Directory Administrator to SQL database, set the argument `ad_admin_login_name` with a valid Azure AD user login name.
 
-## Configuring the Azure SQL Database Firewall
+### Configuring the Azure SQL Database Firewall
 
 The Azure SQL Database firewall lets you decide which IP addresses may or may not have access to either your Azure SQL Server or your Azure SQL database.  When creating an Azure SQL Database, the firewall needs to be configured before anyone will be able to access the database.
 
