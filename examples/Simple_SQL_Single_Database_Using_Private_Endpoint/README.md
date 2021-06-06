@@ -25,8 +25,10 @@ module "mssql-server" {
   sql_database_edition         = "Standard"
   sqldb_service_objective_name = "S1"
 
-  # SQL server extended auditing policy defaults to `true`. To turn off set enable_sql_server_extended_auditing_policy to `false`  
-  # DB extended auditing policy defaults to `false`. to tun on set the variable `enable_database_extended_auditing_policy` to `true` 
+  # SQL server extended auditing policy defaults to `true`. 
+  # To turn off set enable_sql_server_extended_auditing_policy to `false`  
+  # DB extended auditing policy defaults to `false`. 
+  # to tun on set the variable `enable_database_extended_auditing_policy` to `true` 
   # To enable Azure Defender for Azure SQL database servers set `enable_threat_detection_policy` to true 
   enable_threat_detection_policy = true
   log_retention_days             = 30

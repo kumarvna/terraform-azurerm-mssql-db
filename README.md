@@ -45,8 +45,10 @@ module "mssql-server" {
   sql_database_edition         = "Standard"
   sqldb_service_objective_name = "S1"
 
-  # SQL server extended auditing policy defaults to `true`. To turn off set enable_sql_server_extended_auditing_policy to `false`  
-  # DB extended auditing policy defaults to `false`. to tun on set the variable `enable_database_extended_auditing_policy` to `true` 
+  # SQL server extended auditing policy defaults to `true`. 
+  # To turn off set enable_sql_server_extended_auditing_policy to `false`  
+  # DB extended auditing policy defaults to `false`. 
+  # to tun on set the variable `enable_database_extended_auditing_policy` to `true` 
   # To enable Azure Defender for Azure SQL database servers set `enable_threat_detection_policy` to true 
   enable_threat_detection_policy = true
   log_retention_days             = 30
@@ -131,7 +133,7 @@ By default, this feature enabled on SQL servers. To manage the threat detection 
 
 ### `threat_detection_policy` - SQL Database Advanced Threat Protection
 
-Advanced Threat Protection for single and pooled databases detects anomalous activities indicating unusual and potentially harmful attempts to access or exploit databases. Advanced Threat Protection can identify Potential SQL injection, Access from unusual location or data center, Access from the unfamiliar principal or potentially harmful application, and Brute force SQL credentials - see more details in Advanced Threat Protection alerts.
+Advanced Threat Protection for single and pooled databases detects anomalous activities indicating unusual and potentially harmful attempts to access or exploit databases. Advanced Threat Protection can identify Potential SQL injection, Access from an unusual location or data center, Access from the unfamiliar principal or potentially harmful application, and Brute force SQL credentials - see more details in Advanced Threat Protection alerts.
 
 By default, this feature not enabled on this module. To enable the threat detection policy for the database, set the argument `enable_threat_detection_policy = true`.
 
