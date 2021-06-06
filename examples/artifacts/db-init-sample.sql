@@ -6,17 +6,20 @@ CREATE SCHEMA sales;
 go
 
 -- create tables
-CREATE TABLE production.categories (
+CREATE TABLE production.categories
+(
 	category_id INT IDENTITY (1, 1) PRIMARY KEY,
 	category_name VARCHAR (255) NOT NULL
 );
 
-CREATE TABLE production.brands (
+CREATE TABLE production.brands
+(
 	brand_id INT IDENTITY (1, 1) PRIMARY KEY,
 	brand_name VARCHAR (255) NOT NULL
 );
 
-CREATE TABLE production.products (
+CREATE TABLE production.products
+(
 	product_id INT IDENTITY (1, 1) PRIMARY KEY,
 	product_name VARCHAR (255) NOT NULL,
 	brand_id INT NOT NULL,
@@ -27,7 +30,8 @@ CREATE TABLE production.products (
 	FOREIGN KEY (brand_id) REFERENCES production.brands (brand_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE sales.customers (
+CREATE TABLE sales.customers
+(
 	customer_id INT IDENTITY (1, 1) PRIMARY KEY,
 	first_name VARCHAR (255) NOT NULL,
 	last_name VARCHAR (255) NOT NULL,
@@ -39,7 +43,8 @@ CREATE TABLE sales.customers (
 	zip_code VARCHAR (5)
 );
 
-CREATE TABLE sales.stores (
+CREATE TABLE sales.stores
+(
 	store_id INT IDENTITY (1, 1) PRIMARY KEY,
 	store_name VARCHAR (255) NOT NULL,
 	phone VARCHAR (25),
@@ -50,7 +55,8 @@ CREATE TABLE sales.stores (
 	zip_code VARCHAR (5)
 );
 
-CREATE TABLE sales.staffs (
+CREATE TABLE sales.staffs
+(
 	staff_id INT IDENTITY (1, 1) PRIMARY KEY,
 	first_name VARCHAR (50) NOT NULL,
 	last_name VARCHAR (50) NOT NULL,
@@ -63,7 +69,8 @@ CREATE TABLE sales.staffs (
 	FOREIGN KEY (manager_id) REFERENCES sales.staffs (staff_id) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
-CREATE TABLE sales.orders (
+CREATE TABLE sales.orders
+(
 	order_id INT IDENTITY (1, 1) PRIMARY KEY,
 	customer_id INT,
 	order_status tinyint NOT NULL,
@@ -78,7 +85,8 @@ CREATE TABLE sales.orders (
 	FOREIGN KEY (staff_id) REFERENCES sales.staffs (staff_id) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
-CREATE TABLE sales.order_items (
+CREATE TABLE sales.order_items
+(
 	order_id INT,
 	item_id INT,
 	product_id INT NOT NULL,
@@ -90,7 +98,8 @@ CREATE TABLE sales.order_items (
 	FOREIGN KEY (product_id) REFERENCES production.products (product_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE production.stocks (
+CREATE TABLE production.stocks
+(
 	store_id INT,
 	product_id INT,
 	quantity INT,
