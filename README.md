@@ -24,8 +24,6 @@ You can also create a single database in the provisioned or serverless compute t
 
 ## Module Usage
 
-### Simple Azure SQL single database using private Endpoint
-
 ```hcl
 module "mssql-server" {
   source  = "kumarvna/mssql-db/azurerm"
