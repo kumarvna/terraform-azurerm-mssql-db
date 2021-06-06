@@ -88,7 +88,7 @@ variable "enable_vulnerability_assessment" {
   default     = false
 }
 
-variable "sql_admin_email_addresses" {
+variable "email_addresses_for_alerts" {
   description = "A list of email addresses which alerts should be sent to."
   type        = list(any)
   default     = []
@@ -100,14 +100,9 @@ variable "disabled_alerts" {
   default     = []
 }
 
-variable "enable_sql_ad_admin" {
-  description = "Allows you to set a user or group as the AD administrator for an Azure SQL server"
-  default     = false
-}
-
 variable "ad_admin_login_name" {
   description = "The login name of the principal to set as the server administrator"
-  default     = ""
+  default     = null
 }
 
 variable "identity" {
@@ -166,6 +161,7 @@ variable "initialize_sql_script_execution" {
 
 variable "sqldb_init_script_file" {
   description = "SQL Script file name to create and initialize the database"
+  default = ""
 }
 
 variable "extaudit_diag_logs" {

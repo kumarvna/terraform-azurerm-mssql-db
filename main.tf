@@ -160,7 +160,7 @@ resource "azurerm_sql_database" "db" {
       storage_endpoint           = azurerm_storage_account.storeacc.0.primary_blob_endpoint
       storage_account_access_key = azurerm_storage_account.storeacc.0.primary_access_key
       retention_days             = var.log_retention_days
-      email_addresses            = var.sql_admin_email_addresses
+      email_addresses            = var.email_addresses_for_alerts
     }
   }
 }
@@ -185,7 +185,7 @@ resource "azurerm_mssql_server_security_alert_policy" "sap_primary" {
   server_name                = azurerm_sql_server.primary.name
   state                      = "Enabled"
   email_account_admins       = true
-  email_addresses            = var.sql_admin_email_addresses
+  email_addresses            = var.email_addresses_for_alerts
   retention_days             = var.threat_detection_audit_logs_retention_days
   disabled_alerts            = var.disabled_alerts
   storage_account_access_key = azurerm_storage_account.storeacc.0.primary_access_key
@@ -198,7 +198,7 @@ resource "azurerm_mssql_server_security_alert_policy" "sap_secondary" {
   server_name                = azurerm_sql_server.secondary.0.name
   state                      = "Enabled"
   email_account_admins       = true
-  email_addresses            = var.sql_admin_email_addresses
+  email_addresses            = var.email_addresses_for_alerts
   retention_days             = var.threat_detection_audit_logs_retention_days
   disabled_alerts            = var.disabled_alerts
   storage_account_access_key = azurerm_storage_account.storeacc.0.primary_access_key
@@ -214,7 +214,7 @@ resource "azurerm_mssql_server_vulnerability_assessment" "va_primary" {
   recurring_scans {
     enabled                   = true
     email_subscription_admins = true
-    emails                    = var.sql_admin_email_addresses
+    emails                    = var.email_addresses_for_alerts
   }
 }
 
@@ -227,7 +227,7 @@ resource "azurerm_mssql_server_vulnerability_assessment" "va_secondary" {
   recurring_scans {
     enabled                   = true
     email_subscription_admins = true
-    emails                    = var.sql_admin_email_addresses
+    emails                    = var.email_addresses_for_alerts
   }
 }
 
