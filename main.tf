@@ -21,6 +21,11 @@ resource "azurerm_resource_group" "rg" {
   tags     = merge({ "Name" = format("%s", var.resource_group_name) }, var.tags, )
 }
 
+data "azurerm_virtual_network" "vnet01" {
+  name                = var.virtual_network_name
+  resource_group_name = local.resource_group_name
+}
+
 data "azurerm_client_config" "current" {}
 
 data "azurerm_log_analytics_workspace" "logws" {
@@ -310,12 +315,6 @@ resource "azurerm_sql_failover_group" "fog" {
 #---------------------------------------------------------
 # Private Link for SQL Server - Default is "false" 
 #---------------------------------------------------------
-
-data "azurerm_virtual_network" "vnet01" {
-  name                = var.virtual_network_name
-  resource_group_name = local.resource_group_name
-}
-
 resource "azurerm_subnet" "snet-ep" {
   count                                          = var.enable_private_endpoint ? 1 : 0
   name                                           = "snet-endpoint-shared-${local.location}"

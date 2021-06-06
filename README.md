@@ -285,9 +285,9 @@ Name | Description
 `sql_failover_group_id`|A failover group of databases on a collection of Azure SQL servers
 `primary_sql_server_private_endpoint`|id of the Primary SQL server Private Endpoint
 `secondary_sql_server_private_endpoint`|id of the Primary SQL server Private Endpoint
-`sql_server_private_dns_zone_domain`|DNS zone name of SQL server Private endpoints dns name records
-`primary_sql_server_private_endpoint_ip`|Priamary SQL server private endpoint IPv4 Addresses
-`primary_sql_server_private_endpoint_fqdn`|Priamary SQL server private endpoint IPv4 Addresses
+`sql_server_private_dns_zone_domain`|DNS zone name of SQL server Private endpoints DNS name records
+`primary_sql_server_private_endpoint_ip`|Primary SQL server private endpoint IPv4 Addresses
+`primary_sql_server_private_endpoint_fqdn`|Primary SQL server private endpoint IPv4 Addresses
 `secondary_sql_server_private_endpoint_ip`|Secondary SQL server private endpoint IPv4 Addresses
 `secondary_sql_server_private_endpoint_fqdn`|Secondary SQL server private endpoint IPv4 Addresses
 

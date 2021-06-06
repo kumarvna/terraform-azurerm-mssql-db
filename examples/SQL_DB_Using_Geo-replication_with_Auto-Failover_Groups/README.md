@@ -1,60 +1,74 @@
-# Azure SQL Database Using Failover Groups with Private endpoints
+# Azure SQL database creation using geo-replication with auto-failover groups
 
-Terraform module for Azure to create a SQL server with initial database, Azure AD login, Firewall rules for SQL, Failover Group, Private endpoint, and corresponding private DNS zone for privatelink A records. It also allows creating an SQL server database with a SQL script initialization.
+Terraform module to create a SQL server with initial database, Azure AD login, Firewall rules for SQL, optional azure monitoring, vulnerability assessment and Geo-replication with auto-failover groups. It also allows creating an SQL server database with a SQL script initialization.
 
 ## Module Usage
 
-### Azure SQL database creation using geo-replication with auto-failover groups 
-
-Following example to create a SQL database using geo-replication with auto-failover groups. This module also supports optional AD admin user for DB, Audit Policies, Firewall Rules, and creation of database schema using SQL script. 
-
-```
+```hcl
 module "mssql-server" {
-  source                          = "kumarvna/mssql-db/azurerm"
-  version                         = "1.0.0"
+  source  = "kumarvna/mssql-db/azurerm"
+  version = "1.1.0"
 
-# Resource Group, VNet and Subnet declarations
-  create_resource_group           = false
-  resource_group_name             = "rg-demo-westeurope-01"
-  location                        = "westeurope"
-  virtual_network_name            = "vnet-demo-westeurope-001"
-  private_subnet_address_prefix   = "10.0.5.0/29"
+  # By default, this module will not create a resource group
+  # proivde a name to use an existing resource group, specify the existing resource group name,
+  # and set the argument to `create_resource_group = false`. Location will be same as existing RG. 
+  resource_group_name  = "rg-shared-westeurope-01"
+  location             = "westeurope"
+  virtual_network_name = "vnet-shared-hub-westeurope-001"
 
-# SQL Server and Database scaling options
-  sqlserver_name                  = "sqldbserver-db01"
-  database_name                   = "demomssqldb"
-  sql_database_edition            = "Standard"
-  sqldb_service_objective_name    = "S1"
+  # SQL Server and Database details
+  # The valid service objective name for the database include S0, S1, S2, S3, P1, P2, P4, P6, P11 
+  sqlserver_name               = "sqldbserver01"
+  database_name                = "demomssqldb"
+  sql_database_edition         = "Standard"
+  sqldb_service_objective_name = "S1"
 
-# SQL Server and Database Audit policies  
-  enable_auditing_policy          = true
-  enable_threat_detection_policy  = true
-  log_retention_days              = 30
-  email_addresses_for_alerts      = ["user@example.com"]
+  # SQL server extended auditing policy defaults to `true`. To turn off set enable_sql_server_extended_auditing_policy to `false`  
+  # DB extended auditing policy defaults to `false`. to tun on set the variable `enable_database_extended_auditing_policy` to `true` 
+  # To enable Azure Defender for Azure SQL database servers set `enable_threat_detection_policy` to true 
+  enable_threat_detection_policy = true
+  log_retention_days             = 30
 
-# AD administrator for an Azure SQL server
-  enable_sql_ad_admin             = true
-  ad_admin_login_name             = "firstname.lastname@example.com"
+  # schedule scan notifications to the subscription administrators
+  # Manages the Vulnerability Assessment for a MS SQL Server set `enable_vulnerability_assessment` to `true`
+  enable_vulnerability_assessment = false
+  sql_admin_email_addresses       = ["user@example.com", "firstname.lastname@example.com"]
 
-# Firewall Rules to allow azure and external clients
-  enable_firewall_rules           = true
+  # AD administrator for an Azure SQL server
+  # Allows you to set a user or group as the AD administrator for an Azure SQL server
+  ad_admin_login_name = "firstname.lastname@example.com"
+
+  # (Optional) To enable Azure Monitoring for Azure SQL database including audit logs
+  # log analytic workspace name required
+  enable_log_monitoring        = true
+  log_analytics_workspace_name = "loganalytics-we-sharedtest2"
+
+  # Sql failover group creation. required secondary locaiton input. 
+  enable_failover_group         = true
+  secondary_sql_server_location = "northeurope"
+
+  # Firewall Rules to allow azure and external clients and specific Ip address/ranges. 
+  enable_firewall_rules = true
   firewall_rules = [
-                {name             = "access-to-azure"
-                start_ip_address  = "0.0.0.0"
-                end_ip_address    = "0.0.0.0"},
-                {name             = "desktop-ip"
-                start_ip_address  = "123.201.75.71"
-                end_ip_address    = "123.201.75.71"}]
+    {
+      name             = "access-to-azure"
+      start_ip_address = "0.0.0.0"
+      end_ip_address   = "0.0.0.0"
+    },
+    {
+      name             = "desktop-ip"
+      start_ip_address = "49.204.225.134"
+      end_ip_address   = "49.204.225.134"
+    }
+  ]
 
-# Sql failover group
-  enable_failover_group           = true
-  secondary_sql_server_location   = "northeurope"
+  # Create and initialize a database with custom SQL script
+  # need sqlcmd utility to run this command
+  # your desktop public IP must be added firewall rules to run this command 
+  initialize_sql_script_execution = true
+  sqldb_init_script_file          = "../artifacts/db-init-sample.sql"
 
-# Create and initialize a database with SQL script
-  initialize_sql_script_execution = false
-  sqldb_init_script_file          = "./artifacts/db-init-sample.sql"
-
-# Tags for Azure Resources
+  # Tags for Azure Resources
   tags = {
     Terraform   = "true"
     Environment = "dev"
@@ -67,10 +81,10 @@ module "mssql-server" {
 
 To run this example you need to execute following Terraform commands
 
-```
-$ terraform init
-$ terraform plan
-$ terraform apply
+```bash
+terraform init
+terraform plan
+terraform apply
 ```
 
 Run `terraform destroy` when you don't need these resources.
