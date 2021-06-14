@@ -132,6 +132,7 @@ variable "enable_private_endpoint" {
 
 variable "virtual_network_name" {
   description = "The name of the virtual network"
+  default     = ""
 }
 
 variable "private_subnet_address_prefix" {
@@ -161,7 +162,7 @@ variable "initialize_sql_script_execution" {
 
 variable "sqldb_init_script_file" {
   description = "SQL Script file name to create and initialize the database"
-  default = ""
+  default     = ""
 }
 
 variable "extaudit_diag_logs" {

@@ -22,6 +22,7 @@ resource "azurerm_resource_group" "rg" {
 }
 
 data "azurerm_virtual_network" "vnet01" {
+  count               = var.enable_private_endpoint ? 1 : 0
   name                = var.virtual_network_name
   resource_group_name = local.resource_group_name
 }
@@ -386,7 +387,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vent-link1" {
   name                  = "vnet-private-zone-link"
   resource_group_name   = local.resource_group_name
   private_dns_zone_name = azurerm_private_dns_zone.dnszone1.0.name
-  virtual_network_id    = data.azurerm_virtual_network.vnet01.id
+  virtual_network_id    = data.azurerm_virtual_network.vnet01.0.id
   tags                  = merge({ "Name" = format("%s", "vnet-private-zone-link") }, var.tags, )
 }
 
