@@ -11,23 +11,23 @@ module "mssql-server" {
 
   # By default, this module will not create a resource group
   # proivde a name to use an existing resource group, specify the existing resource group name,
-  # and set the argument to `create_resource_group = false`. Location will be same as existing RG. 
-  resource_group_name  = "rg-shared-westeurope-01"
-  location             = "westeurope"
-  virtual_network_name = "vnet-shared-hub-westeurope-001"
+  # and set the argument to `create_resource_group = false`. Location will be same as existing RG.
+  create_resource_group = false
+  resource_group_name   = "rg-shared-westeurope-01"
+  location              = "westeurope"
 
   # SQL Server and Database details
-  # The valid service objective name for the database include S0, S1, S2, S3, P1, P2, P4, P6, P11 
+  # The valid service objective name for the database include S0, S1, S2, S3, P1, P2, P4, P6, P11
   sqlserver_name               = "sqldbserver01"
   database_name                = "demomssqldb"
   sql_database_edition         = "Standard"
   sqldb_service_objective_name = "S1"
 
-  # SQL server extended auditing policy defaults to `true`. 
-  # To turn off set enable_sql_server_extended_auditing_policy to `false`  
-  # DB extended auditing policy defaults to `false`. 
-  # to tun on set the variable `enable_database_extended_auditing_policy` to `true` 
-  # To enable Azure Defender for database set `enable_threat_detection_policy` to true 
+  # SQL server extended auditing policy defaults to `true`.
+  # To turn off set enable_sql_server_extended_auditing_policy to `false`
+  # DB extended auditing policy defaults to `false`.
+  # to tun on set the variable `enable_database_extended_auditing_policy` to `true`
+  # To enable Azure Defender for database set `enable_threat_detection_policy` to true
   enable_threat_detection_policy = true
   log_retention_days             = 30
 
@@ -45,11 +45,11 @@ module "mssql-server" {
   enable_log_monitoring        = true
   log_analytics_workspace_name = "loganalytics-we-sharedtest2"
 
-  # Sql failover group creation. required secondary locaiton input. 
+  # Sql failover group creation. required secondary locaiton input.
   enable_failover_group         = true
   secondary_sql_server_location = "northeurope"
 
-  # Firewall Rules to allow azure and external clients and specific Ip address/ranges. 
+  # Firewall Rules to allow azure and external clients and specific Ip address/ranges.
   enable_firewall_rules = true
   firewall_rules = [
     {
@@ -66,7 +66,7 @@ module "mssql-server" {
 
   # Create and initialize a database with custom SQL script
   # need sqlcmd utility to run this command
-  # your desktop public IP must be added firewall rules to run this command 
+  # your desktop public IP must be added firewall rules to run this command
   initialize_sql_script_execution = true
   sqldb_init_script_file          = "../artifacts/db-init-sample.sql"
 

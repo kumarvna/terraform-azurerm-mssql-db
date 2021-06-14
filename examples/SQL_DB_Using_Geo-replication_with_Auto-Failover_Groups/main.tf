@@ -5,9 +5,9 @@ module "mssql-server" {
   # By default, this module will not create a resource group
   # proivde a name to use an existing resource group, specify the existing resource group name,
   # and set the argument to `create_resource_group = false`. Location will be same as existing RG. 
-  resource_group_name  = "rg-shared-westeurope-01"
-  location             = "westeurope"
-  virtual_network_name = "vnet-shared-hub-westeurope-001"
+  create_resource_group = false
+  resource_group_name   = "rg-shared-westeurope-01"
+  location              = "westeurope"
 
   # SQL Server and Database details
   # The valid service objective name for the database include S0, S1, S2, S3, P1, P2, P4, P6, P11 
