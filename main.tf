@@ -91,7 +91,7 @@ resource "azurerm_sql_server" "primary" {
   location                     = local.location
   version                      = "12.0"
   administrator_login          = var.admin_username == null ? "sqladmin" : var.admin_username
-  administrator_login_password = var.admin_password == null ? random_password.main.0.result : var.admin_password
+  administrator_login_password = var.admin_password == null ? random_password.main.result : var.admin_password
   tags                         = merge({ "Name" = format("%s-primary", var.sqlserver_name) }, var.tags, )
 
   dynamic "identity" {
@@ -119,7 +119,7 @@ resource "azurerm_sql_server" "secondary" {
   location                     = var.secondary_sql_server_location
   version                      = "12.0"
   administrator_login          = var.admin_username == null ? "sqladmin" : var.admin_username
-  administrator_login_password = var.admin_password == null ? random_password.main.0.result : var.admin_password
+  administrator_login_password = var.admin_password == null ? random_password.main.result : var.admin_password
   tags                         = merge({ "Name" = format("%s-secondary", var.sqlserver_name) }, var.tags, )
 
   dynamic "identity" {
