@@ -74,7 +74,6 @@ resource "azurerm_storage_container" "storcont" {
 #-------------------------------------------------------------
 
 resource "random_password" "main" {
-  count       = var.admin_password == null ? 1 : var.admin_password
   length      = var.random_password_length
   min_upper   = 4
   min_lower   = 2
