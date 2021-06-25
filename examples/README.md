@@ -11,9 +11,10 @@ module "mssql-server" {
   source  = "kumarvna/mssql-db/azurerm"
   version = "1.1.0"
 
-  # By default, this module will not create a resource group
-  # proivde a name to use an existing resource group, specify the existing resource group name,
-  # and set the argument to `create_resource_group = false`. Location will be same as existing RG.
+  # By default, this module will create a resource group
+  # proivde a name to use an existing resource group and set the argument 
+  # to `create_resource_group = false` if you want to existing resoruce group. 
+  # If you use existing resrouce group location will be the same as existing RG.
   create_resource_group = false
   resource_group_name   = "rg-shared-westeurope-01"
   location              = "westeurope"
@@ -84,9 +85,10 @@ module "mssql-server" {
   source  = "kumarvna/mssql-db/azurerm"
   version = "1.1.0"
 
-  # By default, this module will not create a resource group
-  # proivde a name to use an existing resource group, specify the existing resource group name,
-  # and set the argument to `create_resource_group = false`. Location will be same as existing RG.
+  # By default, this module will create a resource group
+  # proivde a name to use an existing resource group and set the argument 
+  # to `create_resource_group = false` if you want to existing resoruce group. 
+  # If you use existing resrouce group location will be the same as existing RG.
   create_resource_group         = false
   resource_group_name           = "rg-shared-westeurope-01"
   location                      = "westeurope"
@@ -162,9 +164,10 @@ module "mssql-server" {
   source  = "kumarvna/mssql-db/azurerm"
   version = "1.1.0"
 
-  # By default, this module will not create a resource group
-  # proivde a name to use an existing resource group, specify the existing resource group name,
-  # and set the argument to `create_resource_group = false`. Location will be same as existing RG.
+  # By default, this module will create a resource group
+  # proivde a name to use an existing resource group and set the argument 
+  # to `create_resource_group = false` if you want to existing resoruce group. 
+  # If you use existing resrouce group location will be the same as existing RG.
   create_resource_group = false
   resource_group_name   = "rg-shared-westeurope-01"
   location              = "westeurope"
@@ -239,9 +242,10 @@ module "mssql-server" {
   source  = "kumarvna/mssql-db/azurerm"
   version = "1.1.0"
 
-  # By default, this module will not create a resource group
-  # proivde a name to use an existing resource group, specify the existing resource group name,
-  # and set the argument to `create_resource_group = false`. Location will be same as existing RG.
+  # By default, this module will create a resource group
+  # proivde a name to use an existing resource group and set the argument 
+  # to `create_resource_group = false` if you want to existing resoruce group. 
+  # If you use existing resrouce group location will be the same as existing RG.
   create_resource_group         = false
   resource_group_name           = "rg-shared-westeurope-01"
   location                      = "westeurope"
