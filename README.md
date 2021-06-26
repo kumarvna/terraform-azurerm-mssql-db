@@ -304,7 +304,7 @@ Name | Description
 `primary_sql_server_private_endpoint_ip`|Primary SQL server private endpoint IPv4 Addresses
 `primary_sql_server_private_endpoint_fqdn`|Primary SQL server private endpoint IPv4 Addresses
 `secondary_sql_server_private_endpoint_ip`|Secondary SQL server private endpoint IPv4 Addresses
-`secondary_sql_server_private_endpoint_fqdn`|Secondary SQL server private endpoint IPv4 Addresses
+`secondary_sql_server_private_endpoint_fqdn`|Secondary SQL server private endpoint FQDN Addresses
 
 ## Resource Graph
 
