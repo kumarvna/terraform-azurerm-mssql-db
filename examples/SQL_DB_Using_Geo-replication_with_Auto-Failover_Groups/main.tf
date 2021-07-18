@@ -1,3 +1,8 @@
+# Azurerm provider configuration
+provider "azurerm" {
+  features {}
+}
+
 module "mssql-server" {
   source  = "kumarvna/mssql-db/azurerm"
   version = "1.1.0"

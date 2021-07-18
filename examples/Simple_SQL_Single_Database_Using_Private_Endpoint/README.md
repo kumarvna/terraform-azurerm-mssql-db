@@ -5,6 +5,11 @@ Terraform module to create a SQL server with initial database, Azure AD login, F
 ## Module Usage
 
 ```hcl
+# Azurerm provider configuration
+provider "azurerm" {
+  features {}
+}
+
 module "mssql-server" {
   source  = "kumarvna/mssql-db/azurerm"
   version = "1.1.0"
