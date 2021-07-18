@@ -14,7 +14,7 @@ provider "azurerm" {
 
 module "mssql-server" {
   source  = "kumarvna/mssql-db/azurerm"
-  version = "1.1.0"
+  version = "1.2.0"
 
   # By default, this module will create a resource group
   # proivde a name to use an existing resource group and set the argument 
@@ -93,7 +93,7 @@ provider "azurerm" {
 
 module "mssql-server" {
   source  = "kumarvna/mssql-db/azurerm"
-  version = "1.1.0"
+  version = "1.2.0"
 
   # By default, this module will create a resource group
   # proivde a name to use an existing resource group and set the argument 
@@ -177,7 +177,7 @@ provider "azurerm" {
 
 module "mssql-server" {
   source  = "kumarvna/mssql-db/azurerm"
-  version = "1.1.0"
+  version = "1.2.0"
 
   # By default, this module will create a resource group
   # proivde a name to use an existing resource group and set the argument 
@@ -260,7 +260,7 @@ provider "azurerm" {
 
 module "mssql-server" {
   source  = "kumarvna/mssql-db/azurerm"
-  version = "1.1.0"
+  version = "1.2.0"
 
   # By default, this module will create a resource group
   # proivde a name to use an existing resource group and set the argument 
