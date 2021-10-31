@@ -141,6 +141,21 @@ variable "private_subnet_address_prefix" {
   default     = null
 }
 
+variable "existing_vnet_id" {
+  description = "The resoruce id of existing Virtual network"
+  default     = null
+}
+
+variable "existing_subnet_id" {
+  description = "The resource id of existing subnet"
+  default     = null
+}
+
+variable "existing_private_dns_zone" {
+  description = "Name of the existing private DNS zone"
+  default     = null
+}
+
 variable "firewall_rules" {
   description = "Range of IP addresses to allow firewall connections."
   type = list(object({

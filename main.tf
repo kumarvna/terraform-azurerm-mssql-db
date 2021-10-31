@@ -21,12 +21,6 @@ resource "azurerm_resource_group" "rg" {
   tags     = merge({ "Name" = format("%s", var.resource_group_name) }, var.tags, )
 }
 
-data "azurerm_virtual_network" "vnet01" {
-  count               = var.enable_private_endpoint ? 1 : 0
-  name                = var.virtual_network_name
-  resource_group_name = local.resource_group_name
-}
-
 data "azurerm_client_config" "current" {}
 
 data "azurerm_log_analytics_workspace" "logws" {
@@ -316,11 +310,17 @@ resource "azurerm_sql_failover_group" "fog" {
 #---------------------------------------------------------
 # Private Link for SQL Server - Default is "false" 
 #---------------------------------------------------------
+data "azurerm_virtual_network" "vnet01" {
+  count               = var.enable_private_endpoint && var.existing_vnet_id == null ? 1 : 0
+  name                = var.virtual_network_name
+  resource_group_name = local.resource_group_name
+}
+
 resource "azurerm_subnet" "snet-ep" {
-  count                                          = var.enable_private_endpoint ? 1 : 0
-  name                                           = "snet-endpoint-shared-${local.location}"
-  resource_group_name                            = local.resource_group_name
-  virtual_network_name                           = var.virtual_network_name
+  count                                          = var.enable_private_endpoint && var.existing_subnet_id == null ? 1 : 0
+  name                                           = "snet-endpoint-${local.location}"
+  resource_group_name                            = var.existing_vnet_id == null ? data.azurerm_virtual_network.vnet01.0.resource_group_name : element(split("/", var.existing_vnet_id), 4)
+  virtual_network_name                           = var.existing_vnet_id == null ? data.azurerm_virtual_network.vnet01.0.name : element(split("/", var.existing_vnet_id), 8)
   address_prefixes                               = var.private_subnet_address_prefix
   enforce_private_link_endpoint_network_policies = true
 }
@@ -330,11 +330,11 @@ resource "azurerm_private_endpoint" "pep1" {
   name                = format("%s-primary", "sqldb-private-endpoint")
   location            = local.location
   resource_group_name = local.resource_group_name
-  subnet_id           = azurerm_subnet.snet-ep.0.id
+  subnet_id           = var.existing_subnet_id == null ? azurerm_subnet.snet-ep.0.id : var.existing_subnet_id
   tags                = merge({ "Name" = format("%s", "sqldb-private-endpoint") }, var.tags, )
 
   private_service_connection {
-    name                           = "sqldbprivatelink"
+    name                           = "sqldbprivatelink-primary"
     is_manual_connection           = false
     private_connection_resource_id = azurerm_sql_server.primary.id
     subresource_names              = ["sqlServer"]
@@ -346,11 +346,11 @@ resource "azurerm_private_endpoint" "pep2" {
   name                = format("%s-secondary", "sqldb-private-endpoint")
   location            = local.location
   resource_group_name = local.resource_group_name
-  subnet_id           = azurerm_subnet.snet-ep.0.id
+  subnet_id           = var.existing_subnet_id == null ? azurerm_subnet.snet-ep.0.id : var.existing_subnet_id
   tags                = merge({ "Name" = format("%s", "sqldb-private-endpoint") }, var.tags, )
 
   private_service_connection {
-    name                           = "sqldbprivatelink"
+    name                           = "sqldbprivatelink-secondary"
     is_manual_connection           = false
     private_connection_resource_id = azurerm_sql_server.secondary.0.id
     subresource_names              = ["sqlServer"]
@@ -376,7 +376,7 @@ data "azurerm_private_endpoint_connection" "private-ip2" {
 }
 
 resource "azurerm_private_dns_zone" "dnszone1" {
-  count               = var.enable_private_endpoint ? 1 : 0
+  count               = var.existing_private_dns_zone == null && var.enable_private_endpoint ? 1 : 0
   name                = "privatelink.database.windows.net"
   resource_group_name = local.resource_group_name
   tags                = merge({ "Name" = format("%s", "SQL-Private-DNS-Zone") }, var.tags, )
@@ -386,15 +386,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vent-link1" {
   count                 = var.enable_private_endpoint ? 1 : 0
   name                  = "vnet-private-zone-link"
   resource_group_name   = local.resource_group_name
-  private_dns_zone_name = azurerm_private_dns_zone.dnszone1.0.name
-  virtual_network_id    = data.azurerm_virtual_network.vnet01.0.id
+  private_dns_zone_name = var.existing_private_dns_zone == null ? azurerm_private_dns_zone.dnszone1.0.name : var.existing_private_dns_zone
+  virtual_network_id    = var.existing_vnet_id == null ? data.azurerm_virtual_network.vnet01.0.id : var.existing_vnet_id
+  registration_enabled  = true
   tags                  = merge({ "Name" = format("%s", "vnet-private-zone-link") }, var.tags, )
 }
 
 resource "azurerm_private_dns_a_record" "arecord1" {
   count               = var.enable_private_endpoint ? 1 : 0
   name                = azurerm_sql_server.primary.name
-  zone_name           = azurerm_private_dns_zone.dnszone1.0.name
+  zone_name           = var.existing_private_dns_zone == null ? azurerm_private_dns_zone.dnszone1.0.name : var.existing_private_dns_zone
   resource_group_name = local.resource_group_name
   ttl                 = 300
   records             = [data.azurerm_private_endpoint_connection.private-ip1.0.private_service_connection.0.private_ip_address]
@@ -403,7 +404,7 @@ resource "azurerm_private_dns_a_record" "arecord1" {
 resource "azurerm_private_dns_a_record" "arecord2" {
   count               = var.enable_failover_group && var.enable_private_endpoint ? 1 : 0
   name                = azurerm_sql_server.secondary.0.name
-  zone_name           = azurerm_private_dns_zone.dnszone1.0.name
+  zone_name           = var.existing_private_dns_zone == null ? azurerm_private_dns_zone.dnszone1.0.name : var.existing_private_dns_zone
   resource_group_name = local.resource_group_name
   ttl                 = 300
   records             = [data.azurerm_private_endpoint_connection.private-ip2.0.private_service_connection.0.private_ip_address]
