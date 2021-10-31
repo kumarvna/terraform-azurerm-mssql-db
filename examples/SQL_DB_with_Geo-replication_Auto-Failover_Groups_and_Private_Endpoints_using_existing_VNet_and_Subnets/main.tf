@@ -1,13 +1,17 @@
-# Azure SQL database with geo-replication, auto-failover groups and Private Endpoints
-
-Terraform module to create a SQL server with initial database, Azure AD login, Firewall rules for SQL, optional azure monitoring, vulnerability assessment, Geo-replication with auto-failover groups and private endpoints. It also allows creating an SQL server database with a SQL script initialization.
-
-## Module Usage
-
-```terraform
 # Azurerm provider configuration
 provider "azurerm" {
   features {}
+}
+
+data "azurerm_virtual_network" "example" {
+  name                = "vnet-shared-hub-westeurope-001"
+  resource_group_name = "rg-shared-westeurope-01"
+}
+
+data "azurerm_subnet" "example" {
+  name                 = "snet-private-ep"
+  virtual_network_name = data.azurerm_virtual_network.example.name
+  resource_group_name  = data.azurerm_virtual_network.example.resource_group_name
 }
 
 module "mssql-server" {
@@ -49,9 +53,9 @@ module "mssql-server" {
   # Creating Private Endpoint requires, VNet name and address prefix to create a subnet
   # By default this will create a `privatelink.vaultcore.azure.net` DNS zone. 
   # To use existing private DNS zone specify `existing_private_dns_zone` with valid zone name
-  enable_private_endpoint       = true
-  virtual_network_name          = "vnet-shared-hub-westeurope-001"
-  private_subnet_address_prefix = ["10.1.5.0/29"]
+  enable_private_endpoint = true
+  existing_vnet_id        = data.azurerm_virtual_network.example.id
+  existing_subnet_id      = data.azurerm_subnet.example.id
   # existing_private_dns_zone = "demo.example.com"
 
   # AD administrator for an Azure SQL server
@@ -87,16 +91,3 @@ module "mssql-server" {
     ServiceClass = "Gold"
   }
 }
-```
-
-## Terraform Usage
-
-To run this example you need to execute following Terraform commands
-
-```bash
-terraform init
-terraform plan
-terraform apply
-```
-
-Run `terraform destroy` when you don't need these resources.

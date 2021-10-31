@@ -39,7 +39,9 @@ module "mssql-server" {
   enable_failover_group         = true
   secondary_sql_server_location = "northeurope"
 
-  # enabling the Private Endpoints for Sql servers
+  # Creating Private Endpoint requires, VNet name and address prefix to create a subnet
+  # By default this will create a `privatelink.vaultcore.azure.net` DNS zone. 
+  # To use existing private DNS zone specify `existing_private_dns_zone` with valid zone name
   enable_private_endpoint       = true
   virtual_network_name          = "vnet-shared-hub-westeurope-001"
   private_subnet_address_prefix = ["10.1.5.0/29"]

@@ -46,7 +46,9 @@ module "mssql-server" {
   enable_vulnerability_assessment = false
   email_addresses_for_alerts      = ["user@example.com", "firstname.lastname@example.com"]
 
-  # enabling the Private Endpoints for Sql servers
+  # Creating Private Endpoint requires, VNet name and address prefix to create a subnet
+  # By default this will create a `privatelink.vaultcore.azure.net` DNS zone. 
+  # To use existing private DNS zone specify `existing_private_dns_zone` with valid zone name
   enable_private_endpoint = true
   existing_vnet_id        = data.azurerm_virtual_network.example.id
   existing_subnet_id      = data.azurerm_subnet.example.id
