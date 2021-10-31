@@ -77,7 +77,7 @@ output "secondary_sql_server_private_endpoint" {
 
 output "sql_server_private_dns_zone_domain" {
   description = "DNS zone name of SQL server Private endpoints dns name records"
-  value       = element(concat(azurerm_private_dns_zone.dnszone1.*.name, [""]), 0)
+  value       = var.existing_private_dns_zone == null && var.enable_private_endpoint ? element(concat(azurerm_private_dns_zone.dnszone1.*.name, [""]), 0) : var.existing_private_dns_zone
 }
 
 output "primary_sql_server_private_endpoint_ip" {
