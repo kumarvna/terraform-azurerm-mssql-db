@@ -21,6 +21,11 @@ data "azurerm_subnet" "example" {
   resource_group_name  = data.azurerm_virtual_network.example.resource_group_name
 }
 
+data "azurerm_log_analytics_workspace" "example" {
+  name                = "loganalytics-we-sharedtest2"
+  resource_group_name = "rg-shared-westeurope-01"
+}
+
 module "mssql-server" {
   source  = "kumarvna/mssql-db/azurerm"
   version = "1.3.0"
@@ -58,7 +63,7 @@ module "mssql-server" {
   secondary_sql_server_location = "northeurope"
 
   # Creating Private Endpoint requires, VNet name and address prefix to create a subnet
-  # By default this will create a `privatelink.vaultcore.azure.net` DNS zone. 
+  # By default this will create a `privatelink.database.windows.net` DNS zone. 
   # To use existing private DNS zone specify `existing_private_dns_zone` with valid zone name
   enable_private_endpoint = true
   existing_vnet_id        = data.azurerm_virtual_network.example.id
@@ -70,9 +75,10 @@ module "mssql-server" {
   ad_admin_login_name = "firstname.lastname@example.com"
 
   # (Optional) To enable Azure Monitoring for Azure SQL database including audit logs
-  # log analytic workspace name required
-  enable_log_monitoring        = true
-  log_analytics_workspace_name = "loganalytics-we-sharedtest2"
+  # Log Analytic workspace resource id required
+  # (Optional) Specify `storage_account_id` to save monitoring logs to storage. 
+  enable_log_monitoring      = true
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.example.id
 
   # Firewall Rules to allow azure and external clients and specific Ip address/ranges. 
   enable_firewall_rules = true
