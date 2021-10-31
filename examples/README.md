@@ -2,12 +2,14 @@
 
 Terraform module for Azure to create a MS SQL server with initial database, Azure AD login, Firewall rules, Failover Group, Private endpoint, and corresponding private DNS zone. It also supports creating a database with a custom SQL script initialization.
 
-## Module Usage for
+## Module Usage for:
 
 - [Simple SQL Single DB Creation](Simple_SQL_Single_Database_creation/)
-- [Simple SQL Single DB with Private link Endpoint](Simple_SQL_Single_Database_Using_Private_Endpoint/)
-- [SQL DB with Geo-Replication and Auto Failover Groups](SQL_DB_Using_Geo-replication_with_Auto-Failover_Groups/)
-- [SQL DB with Geo-Replication, Private Endpoints, and Auto Failover Groups](SQL_DB_Using_Geo-replication_with_Auto-Failover_Groups_and_Private_Endpoints/)
+- [Simple SQL Single DB with Private link Endpoint](Simple_SQL_Single_Database_with_Private_Endpoint/)
+- [Simple SQL Single DB with Private link Endpoint using existing VNet and Subnets](Simple_SQL_Single_Database_with_Private_Endpoint_using_existing_VNet_and_Subnets/)
+- [SQL DB with Geo-Replication and Auto Failover Groups](SQL_DB_with_Geo-replication_and_Auto-Failover_Groups/)
+- [SQL DB with Geo-Replication, Private Endpoints, and Auto Failover Groups](SQL_DB_with_Geo-replication_Auto-Failover_Groups_and_Private_Endpoints/)
+- [SQL DB with Geo-Replication, Private Endpoints using existing VNet and Subnets, and Auto Failover Groups](SQL_DB_with_Geo-replication_Auto-Failover_Groups_and_Private_Endpoints_using_existing_VNet_and_Subnets/)
 
 ## Terraform Usage
 
