@@ -1,13 +1,10 @@
-# Azure SQL Database - Using Failover Groups with Private Endpoints
+# Azure SQL Database Terraform Module
 
 Terraform module to create an MS SQL server with initial database, Azure AD login, Firewall rules, geo-replication using auto-failover groups, Private endpoints, and corresponding private DNS zone. It also supports creating a database with a custom SQL script initialization.
 
 A single database is the quickest and simplest deployment option for Azure SQL Database. You manage a single database within a SQL Database server, which is inside an Azure resource group in a specified Azure region with this module.
 
 You can also create a single database in the provisioned or serverless compute tier. A provisioned database is pre-allocated a fixed amount of computing resources, including CPU and memory, and uses one of two purchasing models. This module creates a provisioned database using the vCore-based purchasing model, but you can choose a DTU-based model as well.
-
-> **[NOTE]**
-> **This module now supports the meta arguments including `providers`, `depends_on`, `count`, and `for_each`.**
 
 ## Resources supported
 
@@ -27,29 +24,32 @@ You can also create a single database in the provisioned or serverless compute t
 
 ## Module Usage
 
-```hcl
+```terraform
 # Azurerm provider configuration
 provider "azurerm" {
   features {}
 }
 
+data "azurerm_log_analytics_workspace" "example" {
+  name                = "loganalytics-we-sharedtest2"
+  resource_group_name = "rg-shared-westeurope-01"
+}
+
 module "mssql-server" {
   source  = "kumarvna/mssql-db/azurerm"
-  version = "1.2.0"
+  version = "1.3.0"
 
   # By default, this module will create a resource group
   # proivde a name to use an existing resource group and set the argument 
   # to `create_resource_group = false` if you want to existing resoruce group. 
   # If you use existing resrouce group location will be the same as existing RG.
-  create_resource_group         = false
-  resource_group_name           = "rg-shared-westeurope-01"
-  location                      = "westeurope"
-  virtual_network_name          = "vnet-shared-hub-westeurope-001"
-  private_subnet_address_prefix = ["10.1.5.0/29"]
+  create_resource_group = false
+  resource_group_name   = "rg-shared-westeurope-01"
+  location              = "westeurope"
 
   # SQL Server and Database details
   # The valid service objective name for the database include S0, S1, S2, S3, P1, P2, P4, P6, P11 
-  sqlserver_name               = "sqldbserver01"
+  sqlserver_name               = "te-sqldbserver01"
   database_name                = "demomssqldb"
   sql_database_edition         = "Standard"
   sqldb_service_objective_name = "S1"
@@ -67,21 +67,15 @@ module "mssql-server" {
   enable_vulnerability_assessment = false
   email_addresses_for_alerts      = ["user@example.com", "firstname.lastname@example.com"]
 
-  # Sql failover group creation. required secondary locaiton input. 
-  enable_failover_group         = true
-  secondary_sql_server_location = "northeurope"
-
-  # enabling the Private Endpoints for Sql servers
-  enable_private_endpoint = true
-
   # AD administrator for an Azure SQL server
   # Allows you to set a user or group as the AD administrator for an Azure SQL server
   ad_admin_login_name = "firstname.lastname@example.com"
 
   # (Optional) To enable Azure Monitoring for Azure SQL database including audit logs
-  # log analytic workspace name required
-  enable_log_monitoring        = true
-  log_analytics_workspace_name = "loganalytics-we-sharedtest2"
+  # Log Analytic workspace resource id required
+  # (Optional) Specify `storage_account_id` to save monitoring logs to storage. 
+  enable_log_monitoring      = true
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.example.id
 
   # Firewall Rules to allow azure and external clients and specific Ip address/ranges. 
   enable_firewall_rules = true
@@ -93,22 +87,18 @@ module "mssql-server" {
     },
     {
       name             = "desktop-ip"
-      start_ip_address = "49.204.225.134"
-      end_ip_address   = "49.204.225.134"
+      start_ip_address = "49.204.225.49"
+      end_ip_address   = "49.204.225.49"
     }
   ]
 
-  # Create and initialize a database with custom SQL script
-  # need sqlcmd utility to run this command 
-  # your desktop public IP must be added to firewall rules to run this command 
-  initialize_sql_script_execution = true
-  sqldb_init_script_file          = "../artifacts/db-init-sample.sql"
-
-  # Tags for Azure Resources
+  # Adding additional TAG's to your Azure resources
   tags = {
-    Terraform   = "true"
-    Environment = "dev"
-    Owner       = "test-user"
+    ProjectName  = "demo-project"
+    Env          = "dev"
+    Owner        = "user@example.com"
+    BusinessUnit = "CORP"
+    ServiceClass = "Gold"
   }
 }
 ```
@@ -121,15 +111,9 @@ By default, this module generates a strong password for all virtual machines als
 
 ### Resource Group
 
-By default, this module will not create a resource group and the name of an existing resource group to be given in an argument `resource_group_name`. If you want to create a new resource group, set the argument `create_resource_group = true`.
+By default, this module will create a resource group. To use the existing resource group, set the arguments `create_resource_group = false` and provide a valid resource group name with`resource_group_name`.
 
 *If you are using an existing resource group, then this module uses the same resource group location to create all resources in this module.*
-
-### VNet and Subnets
-
-This module is not going to create a `VNet` and corresponding services. However, this module expect you to provide VPC and Subnet address space for private end points.
-
-Deploy Azure VNet terraform module to overcome with this dependency. The [`terraform-azurerm-vnet`](https://github.com/tietoevry-cloud-infra/terraform-azurerm-vnet) module currently available from [GitHub](https://github.com/tietoevry-cloud-infra/terraform-azurerm-vnet), also aligned with this module.
 
 ## Advance usage of module
 
@@ -179,7 +163,49 @@ Azure Private Endpoint is a network interface that connects you privately and se
 
 With Private Link, Microsoft offering the ability to associate a logical server to a specific private IP address (also known as private endpoint) within the VNet. This module helps to implement Failover Groups using private endpoint for SQL Database instead of the public endpoint thus ensuring that customers can get security benefits that it offers.
 
-Clients can connect to the Private endpoint from the same VNet, peered VNet in same region, or via VNet-to-VNet connection across regions. Additionally, clients can connect from on-premises using ExpressRoute, private peering, or VPN tunneling.
+By default, this feature not enabled on this module. To create private link with private endpoints set the variable `enable_private_endpoint` to `true` and provide `virtual_network_name`, `private_subnet_address_prefix` with a valid values. You can also use the existing private DNS zone to create DNS records. To use this feature, set the `existing_private_dns_zone` with a valid existing private DNS zone name.
+
+```terraform
+module "mssql-server" {
+  source  = "kumarvna/mssql-db/azurerm"
+  version = "1.3.0"
+
+  # .... omitted
+
+  # Creating Private Endpoint requires, VNet name and address prefix to create a subnet
+  # By default this will create a `privatelink.database.windows.net` DNS zone. 
+  # To use existing private DNS zone specify `existing_private_dns_zone` with valid zone name
+  enable_private_endpoint       = true
+  virtual_network_name          = "vnet-shared-hub-westeurope-001"
+  private_subnet_address_prefix = ["10.1.5.0/29"]
+  # existing_private_dns_zone = "demo.example.com"
+
+  # ....omitted
+
+}
+```
+
+If you want to use eixsting VNet and Subnet to create a private endpoints, set a variable `enable_private_endpoint` to `true` and provide `existing_vnet_id`, `existing_subnet_id` with a valid resource ids. You can also use the existing private DNS zone to create DNS records. To use this feature, set the `existing_private_dns_zone` with a valid existing private DNS zone name.
+
+```terraform
+module "mssql-server" {
+  source  = "kumarvna/mssql-db/azurerm"
+  version = "1.3.0"
+
+  # .... omitted
+
+  # Creating Private Endpoint requires, VNet name and address prefix to create a subnet
+  # By default this will create a `privatelink.database.windows.net` DNS zone. 
+  # To use existing private DNS zone specify `existing_private_dns_zone` with valid zone name
+  enable_private_endpoint = true
+  existing_vnet_id        = data.azurerm_virtual_network.example.id
+  existing_subnet_id      = data.azurerm_subnet.example.id
+  # existing_private_dns_zone     = "demo.example.com"
+
+  # ....omitted
+
+}
+```
 
 ### Create schema and Initialize SQL Database
 
@@ -188,6 +214,24 @@ This module uses the tool slqcmd as a local provisioner to connect and inject th
 > #### Note: To create SQL database schema using SQL script from your desktop requires the addition of a firewall rule. Add your machine public IP to firewall rules to run this feature else this will fail to run and exit the terraform plan
 
 Installation of the Microsoft `sqlcmd` utility on [Ubuntu](https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-setup-tools?view=sql-server-ver15#ubuntu) or on [Windows](https://docs.microsoft.com/en-us/sql/tools/sqlcmd-utility?view=sql-server-ver15) found here.
+
+```terraform
+module "mssql-server" {
+  source  = "kumarvna/mssql-db/azurerm"
+  version = "1.3.0"
+
+  # .... omitted
+
+  # Create and initialize a database with custom SQL script
+  # need sqlcmd utility to run this command 
+  # your desktop public IP must be added to firewall rules to run this command 
+  initialize_sql_script_execution = true
+  sqldb_init_script_file          = "../artifacts/db-init-sample.sql"
+
+  # ....omitted
+
+}
+```
 
 ## Recommended naming and tagging conventions
 
@@ -225,11 +269,14 @@ Name | Description | Type | Default
 `database_name`|The name of the SQL database|string|`""`
 `admin_username`|The username of the local administrator used for the SQL Server|string|`"azureadmin"`
 `admin_password`|The Password which should be used for the local-administrator on this SQL Server|string|`null`
+`random_password_length`|The desired length of random password created by this module|number|`32`
+`storage_account_name`|The name of the storage account|string|`null`
 `sql_database_edition`|The edition of the database to be created. Valid values are: `Basic`, `Standard`, `Premium`, `DataWarehouse`, `Business`, `BusinessCritical`, `Free`, `GeneralPurpose`, `Hyperscale`, `Premium`, `PremiumRS`, `Standard`, `Stretch`, `System`, `System2`, or `Web`|string|`"Standard"`
 `sqldb_service_objective_name`|The service objective name for the database. Valid values depend on edition and location and may include `S0`, `S1`, `S2`, `S3`, `P1`, `P2`, `P4`, `P6`, `P11`|string|`"S1"`
 `enable_sql_server_extended_auditing_policy`|Manages Extended Audit policy for SQL servers|string|`"true"`
 `enable_database_extended_auditing_policy`|Manages Extended Audit policy for SQL database|string|`"false"`
 `enable_threat_detection_policy`|Threat detection policy configuration|string|`"false"`
+`enable_log_monitoring`|Enable audit events to Azure Monitor?|string|`false`
 `log_retention_days`|Specifies the number of days to retain logs for in the storage account|`number`|`30`
 `email_addresses_for_alerts`|Account administrators email for alerts|`list(any)`|`""`
 `ad_admin_login_name`|The login name of the principal to set as the server administrator|string|`null`
@@ -237,15 +284,16 @@ Name | Description | Type | Default
 `firewall_rules`| list of firewall rules to add SQL servers| `list(object({}))`| `[]`
 `enable_failover_group`|Create a failover group of databases on a collection of Azure SQL servers|string| `"false"`
 `secondary_sql_server_location`|The location of the secondary SQL server (applicable if Failover groups enabled)|string|`"northeurope"`
-`enable_private_endpoint`|Azure Private Endpoint is a network interface that connects you privately and securely to a service powered by Azure Private Link|string|`"false"`
-`virtual_network_name` | The name of the virtual network|string|`""`
-`private_subnet_address_prefix`|A list of subnets address prefixes inside virtual network| list |`[]`
 `initialize_sql_script_execution`|enable sqlcmd tool to connect and create database schema|string| `"false"`
 `sqldb_init_script_file`|SQL file to execute via sqlcmd utility to create required database schema |string|`""`
-`enable_log_monitoring`|Enable audit events to Azure Monitor?|string|`false`
-`storage_account_name`|The name of the storage account name|string|`null`
-`log_analytics_workspace_name`|The name of log analytics workspace name|string|`null`
-`random_password_length`|The desired length of random password created by this module|number|`24`
+`enable_private_endpoint`|Manages a Private Endpoint to Azure Container Registry|string|`false`
+`virtual_network_name`|The name of the virtual network for the private endpoint creation. conflicts with `existing_vnet_id`and shouldn't use both.|string|`""`
+`private_subnet_address_prefix`|Address prefix of the subnet for private endpoint creation. conflicts with `existing_subnet_id` and shouldn't use both|list(string)|`null`
+`existing_vnet_id`|The resoruce id of existing Virtual network for private endpoint creation. Conflicts with `virtual_network_name`and shouldn't use both|string|`null`
+`existing_subnet_id`|The resource id of existing subnet for private endpoint creation. Conflicts with `private_subnet_address_prefix` and shouldn't use both|string|`null`
+`existing_private_dns_zone`|The name of exisging private DNS zone|string|`null`
+`log_analytics_workspace_id`|The id of log analytic workspace to send logs and metrics.|string|`"null"`
+`storage_account_id`|The id of storage account to send logs and metrics|string|`"null"`
 `Tags`|A map of tags to add to all resources|map|`{}`
 
 ## Outputs
@@ -286,7 +334,3 @@ Originally created by [Kumaraswamy Vithanala](mailto:kumarvna@gmail.com)
 * [Azure SQL Database documentation](https://docs.microsoft.com/en-us/azure/sql-database/)
 
 * [Terraform AzureRM Provider Documentation](https://www.terraform.io/docs/providers/azurerm/index.html)
-
-<a href="https://trackgit.com">
-<img src="https://us-central1-trackgit-analytics.cloudfunctions.net/token/ping/ksoy6wbtv96k7qirtaks" alt="trackgit-views" />
-</a>
