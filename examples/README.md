@@ -4,10 +4,10 @@ Terraform module for Azure to create a MS SQL server with initial database, Azur
 
 ## Module Usage for
 
-[Simple SQL Single DB Creation](Simple_SQL_Single_Database_creation/)
-[Simple SQL Single DB with Private link Endpoint](Simple_SQL_Single_Database_Using_Private_Endpoint/)
-[SQL DB with Geo-Replication and Auto Failover Groups](SQL_DB_Using_Geo-replication_with_Auto-Failover_Groups/)
-[SQL DB with Geo-Replication, Private Endpoints, and Auto Failover Groups](SQL_DB_Using_Geo-replication_with_Auto-Failover_Groups_and_Private_Endpoints/)
+- [Simple SQL Single DB Creation](Simple_SQL_Single_Database_creation/)
+- [Simple SQL Single DB with Private link Endpoint](Simple_SQL_Single_Database_Using_Private_Endpoint/)
+- [SQL DB with Geo-Replication and Auto Failover Groups](SQL_DB_Using_Geo-replication_with_Auto-Failover_Groups/)
+- [SQL DB with Geo-Replication, Private Endpoints, and Auto Failover Groups](SQL_DB_Using_Geo-replication_with_Auto-Failover_Groups_and_Private_Endpoints/)
 
 ## Terraform Usage
 

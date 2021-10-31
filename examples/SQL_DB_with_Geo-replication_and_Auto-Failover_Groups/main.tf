@@ -1,24 +1,6 @@
-# Simple Azure SQL single database with private Endpoint using existing VNet and Subnets
-
-Terraform module to create a SQL server with initial database, Azure AD login, Firewall rules for SQL, optional azure monitoring vulnerability assessment and private endpoints. It also allows creating an SQL server database with a SQL script initialization.
-
-## Module Usage
-
-```terraform
 # Azurerm provider configuration
 provider "azurerm" {
   features {}
-}
-
-data "azurerm_virtual_network" "example" {
-  name                = "vnet-shared-hub-westeurope-001"
-  resource_group_name = "rg-shared-westeurope-01"
-}
-
-data "azurerm_subnet" "example" {
-  name                 = "snet-private-ep"
-  virtual_network_name = data.azurerm_virtual_network.example.name
-  resource_group_name  = data.azurerm_virtual_network.example.resource_group_name
 }
 
 module "mssql-server" {
@@ -35,7 +17,7 @@ module "mssql-server" {
 
   # SQL Server and Database details
   # The valid service objective name for the database include S0, S1, S2, S3, P1, P2, P4, P6, P11 
-  sqlserver_name               = "te-sqldbserver01"
+  sqlserver_name               = "sqldbserver01"
   database_name                = "demomssqldb"
   sql_database_edition         = "Standard"
   sqldb_service_objective_name = "S1"
@@ -53,12 +35,6 @@ module "mssql-server" {
   enable_vulnerability_assessment = false
   email_addresses_for_alerts      = ["user@example.com", "firstname.lastname@example.com"]
 
-  # enabling the Private Endpoints for Sql servers
-  enable_private_endpoint = true
-  existing_vnet_id        = data.azurerm_virtual_network.example.id
-  existing_subnet_id      = data.azurerm_subnet.example.id
-  # existing_private_dns_zone = "demo.example.com"
-
   # AD administrator for an Azure SQL server
   # Allows you to set a user or group as the AD administrator for an Azure SQL server
   ad_admin_login_name = "firstname.lastname@example.com"
@@ -67,6 +43,10 @@ module "mssql-server" {
   # log analytic workspace name required
   enable_log_monitoring        = true
   log_analytics_workspace_name = "loganalytics-we-sharedtest2"
+
+  # Sql failover group creation. required secondary locaiton input. 
+  enable_failover_group         = true
+  secondary_sql_server_location = "northeurope"
 
   # Firewall Rules to allow azure and external clients and specific Ip address/ranges. 
   enable_firewall_rules = true
@@ -78,8 +58,8 @@ module "mssql-server" {
     },
     {
       name             = "desktop-ip"
-      start_ip_address = "123.201.36.94"
-      end_ip_address   = "123.201.36.94"
+      start_ip_address = "49.204.225.134"
+      end_ip_address   = "49.204.225.134"
     }
   ]
 
@@ -92,16 +72,3 @@ module "mssql-server" {
     ServiceClass = "Gold"
   }
 }
-```
-
-## Terraform Usage
-
-To run this example you need to execute following Terraform commands
-
-```bash
-terraform init
-terraform plan
-terraform apply
-```
-
-Run `terraform destroy` when you don't need these resources.
