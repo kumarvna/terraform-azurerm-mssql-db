@@ -334,7 +334,3 @@ Originally created by [Kumaraswamy Vithanala](mailto:kumarvna@gmail.com)
 * [Azure SQL Database documentation](https://docs.microsoft.com/en-us/azure/sql-database/)
 
 * [Terraform AzureRM Provider Documentation](https://www.terraform.io/docs/providers/azurerm/index.html)
-
-<a href="https://trackgit.com">
-<img src="https://us-central1-trackgit-analytics.cloudfunctions.net/token/ping/ksoy6wbtv96k7qirtaks" alt="trackgit-views" />
-</a>
