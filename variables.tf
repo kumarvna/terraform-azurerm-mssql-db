@@ -14,11 +14,6 @@ variable "storage_account_name" {
   default     = null
 }
 
-variable "log_analytics_workspace_name" {
-  description = "The name of log analytics workspace name"
-  default     = null
-}
-
 variable "location" {
   description = "The location/region to keep all your network resources. To get the list of all locations with table format from azure cli, run 'az account list-locations -o table'"
   default     = ""
@@ -26,7 +21,7 @@ variable "location" {
 
 variable "random_password_length" {
   description = "The desired length of random password created by this module"
-  default     = 24
+  default     = 32
 }
 
 variable "enable_sql_server_extended_auditing_policy" {
@@ -181,6 +176,16 @@ variable "sqldb_init_script_file" {
   default     = ""
 }
 
+variable "log_analytics_workspace_id" {
+  description = "Specifies the ID of a Log Analytics Workspace where Diagnostics Data to be sent"
+  default     = null
+}
+
+variable "storage_account_id" {
+  description = "The name of the storage account to store the all monitoring logs"
+  default     = null
+}
+
 variable "extaudit_diag_logs" {
   description = "Database Monitoring Category details for Azure Diagnostic setting"
   default     = ["SQLSecurityAuditEvents", "SQLInsights", "AutomaticTuning", "QueryStoreRuntimeStatistics", "QueryStoreWaitStatistics", "Errors", "DatabaseWaitStatistics", "Timeouts", "Blocks", "Deadlocks"]
@@ -191,5 +196,3 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
-
-
