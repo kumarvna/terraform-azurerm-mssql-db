@@ -66,11 +66,13 @@ module "mssql-server" {
     }
   ]
 
-  # Tags for Azure Resources
+  # Adding additional TAG's to your Azure resources
   tags = {
-    Terraform   = "true"
-    Environment = "dev"
-    Owner       = "test-user"
+    ProjectName  = "demo-project"
+    Env          = "dev"
+    Owner        = "user@example.com"
+    BusinessUnit = "CORP"
+    ServiceClass = "Gold"
   }
 }
 ```
