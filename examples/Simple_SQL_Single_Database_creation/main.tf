@@ -5,7 +5,7 @@ provider "azurerm" {
 
 module "mssql-server" {
   source  = "kumarvna/mssql-db/azurerm"
-  version = "1.2.0"
+  version = "1.3.0"
 
   # By default, this module will create a resource group
   # proivde a name to use an existing resource group and set the argument 
@@ -58,12 +58,6 @@ module "mssql-server" {
       end_ip_address   = "49.204.225.49"
     }
   ]
-
-  # Create and initialize a database with custom SQL script
-  # need sqlcmd utility to run this command
-  # your desktop public IP must be added firewall rules to run this command 
-  initialize_sql_script_execution = true
-  sqldb_init_script_file          = "../artifacts/db-init-sample.sql"
 
   # Tags for Azure Resources
   tags = {

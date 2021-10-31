@@ -12,7 +12,7 @@ provider "azurerm" {
 
 module "mssql-server" {
   source  = "kumarvna/mssql-db/azurerm"
-  version = "1.2.0"
+  version = "1.3.0"
 
   # By default, this module will create a resource group
   # proivde a name to use an existing resource group and set the argument 
@@ -23,17 +23,17 @@ module "mssql-server" {
   location              = "westeurope"
 
   # SQL Server and Database details
-  # The valid service objective name for the database include S0, S1, S2, S3, P1, P2, P4, P6, P11
+  # The valid service objective name for the database include S0, S1, S2, S3, P1, P2, P4, P6, P11 
   sqlserver_name               = "sqldbserver01"
   database_name                = "demomssqldb"
   sql_database_edition         = "Standard"
   sqldb_service_objective_name = "S1"
 
-  # SQL server extended auditing policy defaults to `true`.
-  # To turn off set enable_sql_server_extended_auditing_policy to `false`
-  # DB extended auditing policy defaults to `false`.
-  # to tun on set the variable `enable_database_extended_auditing_policy` to `true`
-  # To enable Azure Defender for database set `enable_threat_detection_policy` to true
+  # SQL server extended auditing policy defaults to `true`. 
+  # To turn off set enable_sql_server_extended_auditing_policy to `false`  
+  # DB extended auditing policy defaults to `false`. 
+  # to tun on set the variable `enable_database_extended_auditing_policy` to `true` 
+  # To enable Azure Defender for database set `enable_threat_detection_policy` to true 
   enable_threat_detection_policy = true
   log_retention_days             = 30
 
@@ -51,7 +51,7 @@ module "mssql-server" {
   enable_log_monitoring        = true
   log_analytics_workspace_name = "loganalytics-we-sharedtest2"
 
-  # Firewall Rules to allow azure and external clients and specific Ip address/ranges.
+  # Firewall Rules to allow azure and external clients and specific Ip address/ranges. 
   enable_firewall_rules = true
   firewall_rules = [
     {
@@ -65,12 +65,6 @@ module "mssql-server" {
       end_ip_address   = "49.204.225.49"
     }
   ]
-
-  # Create and initialize a database with custom SQL script
-  # need sqlcmd utility to run this command
-  # your desktop public IP must be added firewall rules to run this command
-  initialize_sql_script_execution = true
-  sqldb_init_script_file          = "../artifacts/db-init-sample.sql"
 
   # Tags for Azure Resources
   tags = {
