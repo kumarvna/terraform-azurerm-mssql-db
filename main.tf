@@ -73,26 +73,42 @@ resource "random_password" "main" {
   }
 }
 
-resource "azurerm_sql_server" "primary" {
-  name                         = format("%s-primary", var.sqlserver_name)
-  resource_group_name          = local.resource_group_name
-  location                     = local.location
-  version                      = "12.0"
-  administrator_login          = var.admin_username == null ? "sqladmin" : var.admin_username
-  administrator_login_password = var.admin_password == null ? random_password.main.result : var.admin_password
-  tags                         = merge({ "Name" = format("%s-primary", var.sqlserver_name) }, var.tags, )
+resource "azurerm_mssql_server" "primary" {
+  name                                 = format("%s-primary", var.sqlserver_name)
+  resource_group_name                  = local.resource_group_name
+  location                             = local.location
+  version                              = "12.0"
+  administrator_login                  = var.admin_username == null ? "sqladmin" : var.admin_username
+  administrator_login_password         = var.admin_password == null ? random_password.main.result : var.admin_password
+  connection_policy                    = var.connection_policy
+  minimum_tls_version                  = var.minimum_tls_version
+  public_network_access_enabled        = var.enable_public_network_access
+  outbound_network_restriction_enabled = var.enable_outbound_network_restriction
+  primary_user_assigned_identity_id    = var.managed_identity_type == "UserAssigned" ? var.primary_user_assigned_identity_id : null
+  tags                                 = merge({ "Name" = format("%s-prisecondarymary", var.sqlserver_name) }, var.tags, )
 
   dynamic "identity" {
-    for_each = var.identity == true ? [1] : [0]
+    for_each = var.managed_identity_type != null ? [1] : []
     content {
-      type = "SystemAssigned"
+      type         = var.managed_identity_type
+      identity_ids = var.managed_identity_type == "UserAssigned" ? var.managed_identity_ids : null
+    }
+  }
+
+  dynamic "azuread_administrator" {
+    for_each = var.ad_admin_login_name != null ? [1] : []
+    content {
+      login_username              = var.ad_admin_login_name
+      object_id                   = var.ad_admin_object_id == null ? data.azurerm_client_config.current.object_id : var.ad_admin_object_id
+      tenant_id                   = var.ad_admin_tenant_id == null ? data.azurerm_client_config.current.tenant_id : var.ad_admin_tenant_id
+      azuread_authentication_only = var.azuread_authentication_only
     }
   }
 }
 
 resource "azurerm_mssql_server_extended_auditing_policy" "primary" {
   count                                   = var.enable_sql_server_extended_auditing_policy ? 1 : 0
-  server_id                               = azurerm_sql_server.primary.id
+  server_id                               = azurerm_mssql_server.primary.id
   storage_endpoint                        = azurerm_storage_account.storeacc.0.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.storeacc.0.primary_access_key
   storage_account_access_key_is_secondary = false
@@ -100,27 +116,43 @@ resource "azurerm_mssql_server_extended_auditing_policy" "primary" {
   log_monitoring_enabled                  = var.enable_log_monitoring == true && var.log_analytics_workspace_id != null ? true : false
 }
 
-resource "azurerm_sql_server" "secondary" {
-  count                        = var.enable_failover_group ? 1 : 0
-  name                         = format("%s-secondary", var.sqlserver_name)
-  resource_group_name          = local.resource_group_name
-  location                     = var.secondary_sql_server_location
-  version                      = "12.0"
-  administrator_login          = var.admin_username == null ? "sqladmin" : var.admin_username
-  administrator_login_password = var.admin_password == null ? random_password.main.result : var.admin_password
-  tags                         = merge({ "Name" = format("%s-secondary", var.sqlserver_name) }, var.tags, )
+resource "azurerm_mssql_server" "secondary" {
+  count                                = var.enable_failover_group ? 1 : 0
+  name                                 = format("%s-secondary", var.sqlserver_name)
+  resource_group_name                  = local.resource_group_name
+  location                             = var.secondary_sql_server_location
+  version                              = "12.0"
+  administrator_login                  = var.admin_username == null ? "sqladmin" : var.admin_username
+  administrator_login_password         = var.admin_password == null ? random_password.main.result : var.admin_password
+  connection_policy                    = var.connection_policy
+  minimum_tls_version                  = var.minimum_tls_version
+  public_network_access_enabled        = var.enable_public_network_access
+  outbound_network_restriction_enabled = var.enable_outbound_network_restriction
+  primary_user_assigned_identity_id    = var.managed_identity_type == "UserAssigned" ? var.primary_user_assigned_identity_id : null
+  tags                                 = merge({ "Name" = format("%s-prisecondarymary", var.sqlserver_name) }, var.tags, )
 
   dynamic "identity" {
-    for_each = var.identity == true ? [1] : [0]
+    for_each = var.managed_identity_type != null ? [1] : []
     content {
-      type = "SystemAssigned"
+      type         = var.managed_identity_type
+      identity_ids = var.managed_identity_type == "UserAssigned" ? var.managed_identity_ids : null
+    }
+  }
+
+  dynamic "azuread_administrator" {
+    for_each = var.ad_admin_login_name != null ? [1] : []
+    content {
+      login_username              = var.ad_admin_login_name
+      object_id                   = var.ad_admin_object_id == null ? data.azurerm_client_config.current.object_id : var.ad_admin_object_id
+      tenant_id                   = var.ad_admin_tenant_id == null ? data.azurerm_client_config.current.tenant_id : var.ad_admin_tenant_id
+      azuread_authentication_only = var.azuread_authentication_only
     }
   }
 }
 
 resource "azurerm_mssql_server_extended_auditing_policy" "secondary" {
   count                                   = var.enable_failover_group && var.enable_sql_server_extended_auditing_policy ? 1 : 0
-  server_id                               = azurerm_sql_server.secondary.0.id
+  server_id                               = azurerm_mssql_server.secondary.0.id
   storage_endpoint                        = azurerm_storage_account.storeacc.0.primary_blob_endpoint
   storage_account_access_key              = azurerm_storage_account.storeacc.0.primary_access_key
   storage_account_access_key_is_secondary = false
@@ -129,11 +161,12 @@ resource "azurerm_mssql_server_extended_auditing_policy" "secondary" {
 }
 
 
+
 #--------------------------------------------------------------------
 # SQL Database creation - Default edition:"Standard" and objective:"S1"
 #--------------------------------------------------------------------
 
-resource "azurerm_sql_database" "db" {
+/* resource "azurerm_sql_database" "db" {
   name                             = var.database_name
   resource_group_name              = local.resource_group_name
   location                         = local.location
@@ -162,6 +195,14 @@ resource "azurerm_mssql_database_extended_auditing_policy" "primary" {
   storage_account_access_key_is_secondary = false
   retention_in_days                       = var.log_retention_days
   log_monitoring_enabled                  = var.enable_log_monitoring == true && var.log_analytics_workspace_id != null ? true : null
+}
+ */
+
+resource "azurerm_mssql_server" "db" {
+  name                        = lower(var.database_name)
+  server_id                   = azurerm_mssql_server.primary.id
+  auto_pause_delay_in_minutes = var.auto_pause_delay_in_minutes
+
 }
 
 #-----------------------------------------------------------------------------------------------
@@ -229,28 +270,6 @@ resource "null_resource" "create_sql" {
   provisioner "local-exec" {
     command = "sqlcmd -I -U ${azurerm_sql_server.primary.administrator_login} -P ${azurerm_sql_server.primary.administrator_login_password} -S ${azurerm_sql_server.primary.fully_qualified_domain_name} -d ${azurerm_sql_database.db.name} -i ${var.sqldb_init_script_file} -o ${format("%s.log", replace(var.sqldb_init_script_file, "/.sql/", ""))}"
   }
-}
-
-#-----------------------------------------------------------------------------------------------
-# Adding AD Admin to SQL Server - Secondary server depend on Failover Group - Default is "false"
-#-----------------------------------------------------------------------------------------------
-
-resource "azurerm_sql_active_directory_administrator" "aduser1" {
-  count               = var.ad_admin_login_name != null ? 1 : 0
-  server_name         = azurerm_sql_server.primary.name
-  resource_group_name = local.resource_group_name
-  login               = var.ad_admin_login_name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  object_id           = data.azurerm_client_config.current.object_id
-}
-
-resource "azurerm_sql_active_directory_administrator" "aduser2" {
-  count               = var.enable_failover_group && var.ad_admin_login_name != null ? 1 : 0
-  server_name         = azurerm_sql_server.secondary.0.name
-  resource_group_name = local.resource_group_name
-  login               = var.ad_admin_login_name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  object_id           = data.azurerm_client_config.current.object_id
 }
 
 #---------------------------------------------------------

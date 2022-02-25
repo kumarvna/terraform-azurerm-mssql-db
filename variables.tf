@@ -24,21 +24,6 @@ variable "random_password_length" {
   default     = 32
 }
 
-variable "enable_sql_server_extended_auditing_policy" {
-  description = "Manages Extended Audit policy for SQL servers"
-  default     = true
-}
-
-variable "enable_database_extended_auditing_policy" {
-  description = "Manages Extended Audit policy for SQL database"
-  default     = false
-}
-
-variable "enable_threat_detection_policy" {
-  description = ""
-  default     = false
-}
-
 variable "sqlserver_name" {
   description = "SQL server Name"
   default     = ""
@@ -52,6 +37,77 @@ variable "admin_username" {
 variable "admin_password" {
   description = "The password associated with the admin_username user"
   default     = null
+}
+
+variable "connection_policy" {
+  description = "The connection policy the server will use. Possible values are `Default`, `Proxy`, and `Redirect`"
+  default     = "Default"
+}
+
+variable "minimum_tls_version" {
+  description = "The Minimum TLS Version for all SQL Database and SQL Data Warehouse databases associated with the server. Valid values are: `1.0`, `1.1` and `1.2`."
+  default     = null
+}
+
+variable "enable_public_network_access" {
+  description = "Whether public network access is allowed for this server."
+  default     = true
+}
+
+variable "enable_outbound_network_restriction" {
+  description = "Whether outbound network traffic is restricted for this server."
+  default     = false
+}
+
+variable "primary_user_assigned_identity_id" {
+  description = "Specifies the primary user managed identity id. Required if using Identiy block with `UserAssigned` type and should be combined with `user_assigned_identity_ids`."
+  default     = null
+}
+
+variable "managed_identity_type" {
+  description = "Specifies the identity type of the Microsoft SQL Server. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you) and `UserAssigned` where you can specify the Service Principal IDs in the `user_assigned_identity_ids` field."
+  default     = null
+}
+
+variable "managed_identity_ids" {
+  description = "Specifies a list of User Assigned Identity IDs to be assigned. Required if type is `UserAssigned` and should be combined with `primary_user_assigned_identity_id`."
+  default     = null
+}
+
+variable "ad_admin_login_name" {
+  description = "The login name of the principal to set as the server administrator"
+  default     = null
+}
+
+variable "ad_admin_object_id" {
+  description = "The object id of the Azure AD Administrator of this SQL Server."
+  default     = null
+}
+
+variable "ad_admin_tenant_id" {
+  description = "The tenant id of the Azure AD Administrator of this SQL Server."
+  default     = null
+}
+
+variable "azuread_authentication_only" {
+  description = "Specifies whether only AD Users and administrators (like azuread_administrator.0.login_username) can be used to login or also local database users (like administrator_login)."
+  default     = false
+}
+
+
+variable "enable_sql_server_extended_auditing_policy" {
+  description = "Manages Extended Audit policy for SQL servers"
+  default     = true
+}
+
+variable "enable_database_extended_auditing_policy" {
+  description = "Manages Extended Audit policy for SQL database"
+  default     = false
+}
+
+variable "enable_threat_detection_policy" {
+  description = ""
+  default     = false
 }
 
 variable "database_name" {
@@ -96,15 +152,8 @@ variable "disabled_alerts" {
   default     = []
 }
 
-variable "ad_admin_login_name" {
-  description = "The login name of the principal to set as the server administrator"
-  default     = null
-}
 
-variable "identity" {
-  description = "If you want your SQL Server to have an managed identity. Defaults to false."
-  default     = false
-}
+
 
 variable "enable_firewall_rules" {
   description = "Manage an Azure SQL Firewall Rule"
