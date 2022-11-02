@@ -55,18 +55,29 @@ variable "admin_password" {
 }
 
 variable "database_name" {
-  description = "The name of the database"
+  description = "The name of the database; DEPRECATED - use 'databases'"
   default     = ""
 }
 
 variable "sql_database_edition" {
-  description = "The edition of the database to be created"
+  description = "The edition of the database to be created; DEPRECATED - use 'databases'"
   default     = "Standard"
 }
 
 variable "sqldb_service_objective_name" {
-  description = " The service objective name for the database"
+  description = " The service objective name for the database; DEPRECATED - use 'databases'"
   default     = "S1"
+}
+
+variable "databases" {
+  description = "The list of databases to create"
+  type = list(object({
+    name                   = string
+    edition                = string
+    service_objective_name = string
+    sqldb_init_script_file = string
+  }))
+  default = []
 }
 
 variable "log_retention_days" {

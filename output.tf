@@ -51,13 +51,27 @@ output "sql_server_admin_password" {
 }
 
 output "sql_database_id" {
+  description = "The SQL Database ID; DEPRECATED - use sql_database_ids"
+  value       = azurerm_sql_database.db[local.databases[0].name].id
+}
+
+output "sql_database_ids" {
   description = "The SQL Database ID"
-  value       = azurerm_sql_database.db.id
+  value = [
+    for db in azurerm_sql_database.db : db.id
+  ]
 }
 
 output "sql_database_name" {
+  description = "The SQL Database Name; DEPRECATED - use sql_database_names"
+  value       = azurerm_sql_database.db[local.databases[0].name].name
+}
+
+output "sql_database_names" {
   description = "The SQL Database Name"
-  value       = azurerm_sql_database.db.name
+  value = [
+    for db in azurerm_sql_database.db : db.name
+  ]
 }
 
 output "sql_failover_group_id" {

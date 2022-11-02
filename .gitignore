@@ -30,3 +30,6 @@ override.tf.json
 # example: *tfplan*
 versions.tf
 examples/artifacts/db-init-sample.log
+
+# Ignore IDE files
+.idea/
