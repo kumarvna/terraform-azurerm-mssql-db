@@ -162,6 +162,12 @@ variable "existing_private_dns_zone" {
   default     = null
 }
 
+variable "create_private_dns_zone" {
+  description = "Whether or not to create a private DNS zone if existing_private_dns_zone is set to null, e.g. if there is already a DNS zone creatted in a shared subscription and the DNS record is deployed by policy"
+  type        = bool
+  default     = true
+}
+
 variable "firewall_rules" {
   description = "Range of IP addresses to allow firewall connections."
   type = list(object({

@@ -389,14 +389,14 @@ data "azurerm_private_endpoint_connection" "private-ip2" {
 }
 
 resource "azurerm_private_dns_zone" "dnszone1" {
-  count               = var.existing_private_dns_zone == null && var.enable_private_endpoint ? 1 : 0
+  count               = var.existing_private_dns_zone == null && var.enable_private_endpoint && var.create_private_dns_zone ? 1 : 0
   name                = "privatelink.database.windows.net"
   resource_group_name = local.resource_group_name
   tags                = merge({ "Name" = format("%s", "SQL-Private-DNS-Zone") }, var.tags, )
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vent-link1" {
-  count                 = var.enable_private_endpoint ? 1 : 0
+  count                 = var.enable_private_endpoint && (var.existing_private_dns_zone != null || var.create_private_dns_zone) ? 1 : 0
   name                  = "vnet-private-zone-link"
   resource_group_name   = local.resource_group_name
   private_dns_zone_name = var.existing_private_dns_zone == null ? azurerm_private_dns_zone.dnszone1.0.name : var.existing_private_dns_zone
@@ -406,7 +406,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vent-link1" {
 }
 
 resource "azurerm_private_dns_a_record" "arecord1" {
-  count               = var.enable_private_endpoint ? 1 : 0
+  count               = var.enable_private_endpoint && (var.existing_private_dns_zone != null || var.create_private_dns_zone) ? 1 : 0
   name                = azurerm_mssql_server.primary.name
   zone_name           = var.existing_private_dns_zone == null ? azurerm_private_dns_zone.dnszone1.0.name : var.existing_private_dns_zone
   resource_group_name = local.resource_group_name
@@ -415,13 +415,12 @@ resource "azurerm_private_dns_a_record" "arecord1" {
 }
 
 resource "azurerm_private_dns_a_record" "arecord2" {
-  count               = var.enable_failover_group && var.enable_private_endpoint ? 1 : 0
+  count               = var.enable_failover_group && var.enable_private_endpoint && (var.existing_private_dns_zone != null || var.create_private_dns_zone) ? 1 : 0
   name                = azurerm_mssql_server.secondary.0.name
   zone_name           = var.existing_private_dns_zone == null ? azurerm_private_dns_zone.dnszone1.0.name : var.existing_private_dns_zone
   resource_group_name = local.resource_group_name
   ttl                 = 300
   records             = [data.azurerm_private_endpoint_connection.private-ip2.0.private_service_connection.0.private_ip_address]
-
 }
 
 #------------------------------------------------------------------
