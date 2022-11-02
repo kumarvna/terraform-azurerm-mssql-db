@@ -20,33 +20,33 @@ output "storage_account_name" {
 
 output "primary_sql_server_id" {
   description = "The primary Microsoft SQL Server ID"
-  value       = azurerm_sql_server.primary.id
+  value       = azurerm_mssql_server.primary.id
 }
 
 output "primary_sql_server_fqdn" {
   description = "The fully qualified domain name of the primary Azure SQL Server"
-  value       = azurerm_sql_server.primary.fully_qualified_domain_name
+  value       = azurerm_mssql_server.primary.fully_qualified_domain_name
 }
 
 output "secondary_sql_server_id" {
   description = "The secondary Microsoft SQL Server ID"
-  value       = element(concat(azurerm_sql_server.secondary.*.id, [""]), 0)
+  value       = element(concat(azurerm_mssql_server.secondary.*.id, [""]), 0)
 }
 
 output "secondary_sql_server_fqdn" {
   description = "The fully qualified domain name of the secondary Azure SQL Server"
-  value       = element(concat(azurerm_sql_server.secondary.*.fully_qualified_domain_name, [""]), 0)
+  value       = element(concat(azurerm_mssql_server.secondary.*.fully_qualified_domain_name, [""]), 0)
 }
 
 output "sql_server_admin_user" {
   description = "SQL database administrator login id"
-  value       = azurerm_sql_server.primary.administrator_login
+  value       = azurerm_mssql_server.primary.administrator_login
   sensitive   = true
 }
 
 output "sql_server_admin_password" {
   description = "SQL database administrator login password"
-  value       = azurerm_sql_server.primary.administrator_login_password
+  value       = azurerm_mssql_server.primary.administrator_login_password
   sensitive   = true
 }
 
