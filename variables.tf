@@ -213,3 +213,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "public_network_access_enabled" {
+  description = "Whether or not the database should be accessible from the internet"
+  type        = bool
+  default     = true
+}
